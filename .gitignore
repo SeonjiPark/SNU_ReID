@@ -1,0 +1,7 @@
+./__pycache__/
+./checkpoints/*
+./data/*
+./logs/*
+./models/*
+./output*
+

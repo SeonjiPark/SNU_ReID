@@ -1,0 +1,15 @@
+artifact_uri: file:///data/seonjipark/Projects/centroids-reid/mlruns/276101760742044925/fd28aee7c425460f86e2062d0a9223c1/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '276101760742044925'
+lifecycle_stage: active
+run_id: fd28aee7c425460f86e2062d0a9223c1
+run_name: rare-goat-674
+run_uuid: fd28aee7c425460f86e2062d0a9223c1
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1690963671049
+status: 1
+tags: []
+user_id: unknown

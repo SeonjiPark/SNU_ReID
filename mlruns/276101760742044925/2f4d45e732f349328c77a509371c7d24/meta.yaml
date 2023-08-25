@@ -1,0 +1,15 @@
+artifact_uri: file:///data/seonjipark/Projects/centroids-reid/mlruns/276101760742044925/2f4d45e732f349328c77a509371c7d24/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '276101760742044925'
+lifecycle_stage: active
+run_id: 2f4d45e732f349328c77a509371c7d24
+run_name: classy-horse-400
+run_uuid: 2f4d45e732f349328c77a509371c7d24
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1692891077548
+status: 1
+tags: []
+user_id: unknown

@@ -1,0 +1,15 @@
+artifact_uri: file:///data/seonjipark/Projects/centroids-reid/mlruns/276101760742044925/1a980f1bff4848be981ad087d8f2c623/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '276101760742044925'
+lifecycle_stage: active
+run_id: 1a980f1bff4848be981ad087d8f2c623
+run_name: sneaky-perch-212
+run_uuid: 1a980f1bff4848be981ad087d8f2c623
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1692891295805
+status: 1
+tags: []
+user_id: unknown
