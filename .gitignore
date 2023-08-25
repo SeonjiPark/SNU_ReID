@@ -1,0 +1,7 @@
+__pycache__/*
+./*/__pycache__/*
+./.vscode/*
+./runs/*
+./data/AD_*
+./data/CCPD.yaml
+./weights/*
