@@ -5,5 +5,7 @@
 ./data/*
 ./logs/*
 ./models/*
-./output*
+./output/
+./output-dir/*
+./mlruns/*
 
