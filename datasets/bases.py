@@ -42,6 +42,7 @@ class ReidBaseDataModule(pl.LightningDataModule):
         super().__init__()
         self.cfg = cfg
         self.num_workers = kwargs.get("num_workers") if "num_workers" in kwargs else 6
+        # 1 for PRW / 4 for market1501 (SJ No idea...)
         self.num_instances = (
             kwargs.get("num_instances") if "num_instances" in kwargs else 4
         )
@@ -359,7 +360,7 @@ class BaseDatasetLabelledPerPid(Dataset):
         _len = len(list_of_samples)
         assert (
             _len > 1
-        ), f"len of samples for pid: {pid} is <=1. len: {len_}, samples: {list_of_samples}"
+        ), f"len of samples for pid: {pid} is <=1. len: {_len}, samples: {list_of_samples}"
 
         if _len < self.num_instances:
             choice_size = _len

@@ -10,6 +10,7 @@ Adapted and extended by:
 
 from .dukemtmcreid import DukeMTMCreID
 from .market1501 import Market1501, Market1501x2, Market1501x4
+from .prw import PRW
 from .df1 import DF1
 
 __factory = {
@@ -18,6 +19,7 @@ __factory = {
     "market1501x4": Market1501x4,
     "dukemtmcreid": DukeMTMCreID,
     "df1": DF1,
+    "PRW": PRW,
 }
 
 
