@@ -94,8 +94,6 @@ def run_single(cfg, method, logger_save_dir):
         n_saved=1,
         save_interval=1,
     )
-    print(cfg.DATASETS.NAMES)
-    print(cfg)
     dm = init_dataset(
         cfg.DATASETS.NAMES, cfg=cfg, num_workers=cfg.DATALOADER.NUM_WORKERS
     )
@@ -168,6 +166,7 @@ def run_single(cfg, method, logger_save_dir):
         # trainer.test(model=method, test_dataloaders=val_dataloader)
         # method.hparams.MODEL.USE_CENTROIDS = not method.hparams.MODEL.USE_CENTROIDS
         # print("EVALUATION")
+        print("FIRST EVALUATION")
         trainer.test(model=method, test_dataloaders=val_dataloader)
         method.hparams.MODEL.USE_CENTROIDS = not method.hparams.MODEL.USE_CENTROIDS
         trainer.test(model=method, test_dataloaders=val_dataloader)
@@ -177,7 +176,7 @@ def run_single(cfg, method, logger_save_dir):
             method, train_dataloader=train_loader, val_dataloaders=[val_dataloader]
         )
         print("TRAIN END")
-        print("EVALUATION")
+        print("FINAL EVALUATION")
         trainer.test(model=method, test_dataloaders=val_dataloader)
         method.hparams.MODEL.USE_CENTROIDS = not method.hparams.MODEL.USE_CENTROIDS
         trainer.test(model=method, test_dataloaders=val_dataloader)

@@ -53,7 +53,6 @@ def weights_init_kaiming(m):
 class ModelBase(pl.LightningModule):
     def __init__(self, cfg=None, test_dataloader=None, **kwargs):
         super().__init__()
-
         if cfg is None:
             hparams = {**kwargs}
         elif isinstance(cfg, dict):
@@ -70,7 +69,7 @@ class ModelBase(pl.LightningModule):
         # Create backbone model
         #self.hparams.MODEL.PRETRAIN_PATH = '/data/jaep0805/PersonReID/centroids-reid/checkpoints/market1501_resnet50_256_128_epoch_120.ckpt' #added
         self.hparams.MODEL.PRETRAIN_PATH = os.path.join(os.getcwd(), 'models/resnet50-19c8e357.pth') #added
-        
+
         self.backbone = Baseline(self.hparams)
 
         self.contrastive_loss = TripletLoss(
@@ -79,6 +78,8 @@ class ModelBase(pl.LightningModule):
         
         self.octuplet_loss = OctupletLoss(margin = 25)
 
+        ##print(self.hparams.num_classes) #697
+        #self.hparams.num_classes = 751 #added
         d_model = self.hparams.MODEL.BACKBONE_EMB_SIZE
         self.xent = CrossEntropyLabelSmooth(num_classes=self.hparams.num_classes)
         self.center_loss = CenterLoss(

@@ -24,18 +24,6 @@ from .transforms import ReidTransforms
 
 
 class PRW(ReidBaseDataModule):
-    """
-    PRW
-    Reference:
-    Zheng et al. Scalable Person Re-identification: A Benchmark. ICCV 2015.
-    URL: http://www.liangzheng.org/Project/project_reid.html
-
-    Dataset statistics:
-    # identities: 1501 (+1 for background)
-    # images: 12936 (train) + 3368 (query) + 15913 (gallery)
-
-    Version that will not supply resampled instances
-    """
     dataset_dir = 'PRW_reid'
 
     def __init__(self, cfg, **kwargs):
@@ -66,6 +54,7 @@ class PRW(ReidBaseDataModule):
         num_train_pids, num_train_imgs, num_train_cams = self._get_imagedata_info(train)
         self.num_query = len(query)
         self.num_classes = num_train_pids
+        print(self.num_classes)
 
     def _process_dir(self, dir_path, relabel=False):
         img_paths = glob.glob(osp.join(dir_path, '*.jpg'))
@@ -93,20 +82,8 @@ class PRW(ReidBaseDataModule):
 
         return dataset, dataset_dict
 
-class Market1501x2(ReidBaseDataModule):
-    """
-    Market1501
-    Reference:
-    Zheng et al. Scalable Person Re-identification: A Benchmark. ICCV 2015.
-    URL: http://www.liangzheng.org/Project/project_reid.html
-
-    Dataset statistics:
-    # identities: 1501 (+1 for background)
-    # images: 12936 (train) + 3368 (query) + 15913 (gallery)
-
-    Version that will not supply resampled instances
-    """
-    dataset_dir = 'market1501x2'
+class PRWx2(ReidBaseDataModule):
+    dataset_dir = 'PRW_reidx2'
 
     def __init__(self, cfg, **kwargs):
         super().__init__(cfg, **kwargs)
@@ -163,20 +140,8 @@ class Market1501x2(ReidBaseDataModule):
 
         return dataset, dataset_dict
 
-class Market1501x4(ReidBaseDataModule):
-    """
-    Market1501
-    Reference:
-    Zheng et al. Scalable Person Re-identification: A Benchmark. ICCV 2015.
-    URL: http://www.liangzheng.org/Project/project_reid.html
-
-    Dataset statistics:
-    # identities: 1501 (+1 for background)
-    # images: 12936 (train) + 3368 (query) + 15913 (gallery)
-
-    Version that will not supply resampled instances
-    """
-    dataset_dir = 'market1501x4'
+class PRWx4(ReidBaseDataModule):
+    dataset_dir = 'PRW_reidx4'
 
     def __init__(self, cfg, **kwargs):
         super().__init__(cfg, **kwargs)

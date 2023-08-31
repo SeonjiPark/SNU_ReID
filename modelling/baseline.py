@@ -49,7 +49,6 @@ class Baseline(nn.Module):
 
         last_stride = cfg.MODEL.LAST_STRIDE
         model_path = cfg.MODEL.PRETRAIN_PATH
-        print(model_path)
         model_name = cfg.MODEL.NAME
         pretrain_choice = cfg.MODEL.PRETRAINED
         self.use_mixed_precision = cfg.USE_MIXED_PRECISION
@@ -81,7 +80,6 @@ class Baseline(nn.Module):
         elif model_name == 'resnet101_ibn_a':
             self.base = resnet101_ibn_a(last_stride)
         self.model_name = model_name
-
         if pretrain_choice and not cfg.MODEL.RESUME_TRAINING and not cfg.TEST.ONLY_TEST:
             # If resume training do not load backbone weights
             self.base.load_param(model_path)

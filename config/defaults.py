@@ -27,8 +27,7 @@ _C.MODEL.LAST_STRIDE = 1
 # Options: True | False
 _C.MODEL.PRETRAINED = True
 # Path to weights to load
-#_C.MODEL.PRETRAIN_PATH = "/data/jaep0805/PersonReID/centroids-reid/models/resnet50-19c8e357.pth"
-_C.MODEL.PRETRAIN_PATH = "/data/jaep0805/PersonReID/centroids-reid/checkpoints/market1501_resnet50_256_128_epoch_120.ckpt"
+_C.MODEL.PRETRAIN_PATH = "/data/jaep0805/PersonReID/centroids-reid/models/resnet50-19c8e357.pth"
 # Create centroids
 _C.MODEL.USE_CENTROIDS = False
 # Ensures images to build centroids during retrieval
@@ -63,7 +62,7 @@ _C.DATASETS = CN()
 # List of the dataset names for training, as present in paths_catalog.py
 _C.DATASETS.NAMES = "market1501"
 # Root directory where datasets should be used (and downloaded if not found)
-_C.DATASETS.ROOT_DIR = "/data/jaep0805/datasets"
+_C.DATASETS.ROOT_DIR = "./DATASETS"
 # Path to json train file for datasets that require it
 _C.DATASETS.JSON_TRAIN_PATH = ""
 
@@ -90,7 +89,7 @@ _C.SOLVER = CN()
 # Name of optimizer
 _C.SOLVER.OPTIMIZER_NAME = "Adam"
 # Number of max epoches
-_C.SOLVER.MAX_EPOCHS = 6
+_C.SOLVER.MAX_EPOCHS = 120
 # Base learning rate
 _C.SOLVER.BASE_LR = 1e-2
 # Momentum
@@ -125,7 +124,7 @@ _C.SOLVER.MONITOR_METRIC_MODE = "max"
 # epoch number of saving checkpoints
 _C.SOLVER.CHECKPOINT_PERIOD = 50
 # epoch number of validation
-_C.SOLVER.EVAL_PERIOD = 5
+_C.SOLVER.EVAL_PERIOD = 20
 # Number of images per batch PER GPU
 _C.SOLVER.IMS_PER_BATCH = 32
 # 'dp', 'ddp', 'ddp2', 'ddp_spawn' - see pytorch lighning options

@@ -1,7 +1,7 @@
 python finetune_octuplet.py \
 --config_file="configs/256_resnet50.yml" \
 GPU_IDS [0] \
-DATASETS.NAMES 'PRW' \
+DATASETS.NAMES 'PRWx4' \
 DATASETS.ROOT_DIR '../DATASET/' \
 SOLVER.IMS_PER_BATCH 16 \
 TEST.IMS_PER_BATCH 128 \
@@ -10,4 +10,5 @@ OUTPUT_DIR './logs/PRW/256_resnet50' \
 DATALOADER.USE_RESAMPLING False \
 USE_MIXED_PRECISION False \
 MODEL.RESUME_TRAINING True \
-MODEL.PRETRAIN_PATH "./checkpoints/PRW_129.pth"
+MODEL.PRETRAIN_PATH "./checkpoints/prw_epoch119.pth" \
+SOLVER.MAX_EPOCHS 130

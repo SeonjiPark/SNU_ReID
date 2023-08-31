@@ -2,7 +2,6 @@ MODEL:
   NAME: 'resnet50'
   BACKBONE_EMB_SIZE: 2048
   PRETRAIN_PATH: './models/resnet50-19c8e357.pth'
-  #PRETRAIN_PATH: '/data/jaep0805/PersonReID/centroids-reid/checkpoints/market1501_resnet50_256_128_epoch_120.ckpt'
   KEEP_CAMID_CENTROIDS: True
 
 INPUT:
@@ -15,8 +14,8 @@ DATALOADER:
 SOLVER:
   BASE_LR: 0.001
   OPTIMIZER_NAME: "Adagrad"
-  MAX_EPOCHS: 130
-  EVAL_PERIOD: 40
+  MAX_EPOCHS: 120
+  EVAL_PERIOD: 5
 
 USE_MIXED_PRECISION: True
 
