@@ -143,7 +143,7 @@ class ReIDPerson:
             # detect_preds = [image1, image2, ...] of not normalized, HWC 
             # GT_ids = [id1, id2, ...] of int
             # if not detected, both are []
-            detect_preds, GT_ids = do_detect(self.args, self.detection_network, img_preprocess, original_img)
+            detect_preds, GT_ids = do_detect(self.args, self.detection_network, img_preprocess, original_img, labels[0])
 
             # JH todo 
             

@@ -3,8 +3,9 @@ import torch
 import numpy as np
 from pathlib import Path
 
-from SNU_PersonDetection.utils.general import non_max_suppression, scale_coords, check_img_size, xyxy2xywh
+from SNU_PersonDetection.utils.general import non_max_suppression, scale_coords, check_img_size, xywhn2xyxy
 from SNU_PersonDetection.utils.augmentations import letterbox
+from SNU_PersonDetection.utils.metrics import box_iou
 from SNU_PersonDetection.utils.plots import Annotator, colors
 
 from SNU_PersonDetection.models.common import DetectMultiBackend
@@ -26,7 +27,7 @@ def preprocess_img(img, fp_flag, img_size, auto=True):
         im = im[None]  # expand for batch dim
     return im
 
-def do_detect(args, detection_network, img, original_img):
+def do_detect(args, detection_network, img, original_img, labels):
     # Do Detection Inference
     im_resize = preprocess_img(img, detection_network.fp16, args.detect_imgsz, args.stride)
     pred = detection_network(im_resize, augment=False, visualize=False)
@@ -37,14 +38,21 @@ def do_detect(args, detection_network, img, original_img):
     # Process predictions
     for i, det in enumerate(pred):  # per predictions
         # Rescale boxes from img_size to img size
-        det[:, :4] = scale_coords(im_resize.shape[2:], det[:, :4], img.shape).round()
+        det[:, :4] = scale_coords(im_resize.shape[2:], det[:, :4], original_img[0].shape).round()
+    
+
+    # xywh2xyxy
+    gain = min(im_resize.shape[0] / original_img.shape[0], im_resize.shape[1] / original_img.shape[1])  # gain  = old / new
+    pad = (im_resize.shape[1] - original_img.shape[1] * gain) / 2, (im_resize.shape[0] - original_img.shape[0] * gain) / 2  # wh padding
+    labels= xywhn2xyxy(labels, w=original_img[0].shape[0], h=original_img[0].shape[1], padw=pad[0], padh=pad[1])
+    
     
     # SJ todo 
-    # GT ids
-    ids = []
-    import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
     
     pred_images = post_preds_images(det, original_img)
+    ids = find_gt_ids(det, labels)
+    
     
     return pred_images, ids
 
@@ -96,6 +104,15 @@ def post_preds_images(det, original_img):
         pred_images.append(original_img[0, y1:y2, x1:x2, :])
     
     return pred_images
+
+def find_gt_ids(det, labels):
+    
+    gt_ids = []
+    # import ipdb; ipdb.set_trace()
+    # for d in det:
+    # iou = box_iou(labels[:, :4].to("cuda"), det[:, :4])
+    
+    return gt_ids
 
 def process_batch(detections, labels, iouv):
     """
