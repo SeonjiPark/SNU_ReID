@@ -40,56 +40,39 @@ def do_detect(args, detection_network, img, original_img, labels):
         # Rescale boxes from img_size to img size
         det[:, :4] = scale_coords(im_resize.shape[2:], det[:, :4], original_img[0].shape).round()
     
-
     # xywh2xyxy
-    gain = min(im_resize.shape[0] / original_img.shape[0], im_resize.shape[1] / original_img.shape[1])  # gain  = old / new
-    pad = (im_resize.shape[1] - original_img.shape[1] * gain) / 2, (im_resize.shape[0] - original_img.shape[0] * gain) / 2  # wh padding
-    labels= xywhn2xyxy(labels, w=original_img[0].shape[0], h=original_img[0].shape[1], padw=pad[0], padh=pad[1])
+    h, w = im_resize.shape[2:]
+    H, W = original_img.shape[1:3]
+    gain = min(h / H, w / W)  # gain  = old / new
+    pad = (w - W * gain) / 2, (h - H * gain) / 2  # wh padding
+    labels= xywhn2xyxy(labels, w=W, h=H, padw=pad[0], padh=pad[1])
     
     
     # SJ todo 
-    # import ipdb; ipdb.set_trace()
-    
     pred_images = post_preds_images(det, original_img)
     ids = find_gt_ids(det, labels)
     
-    
     return pred_images, ids
 
-def save_detection_result(args, det, names, p, mode, frame, imc, save_dir):
-    p = Path(p)  # to Path
-    save_path = os.path.join(save_dir, p.name)  # im.jpg
-    txt_path = os.path.join(save_dir, 'labels', p.stem) + ('' if mode == 'image' else f'_{frame}')  # im.txt
-    gn = torch.tensor(imc.shape)[[1, 0, 1, 0]]  # normalization gain whwh
-    annotator = Annotator(imc, line_width=3, example=str(names))
-
-
-    for *xyxy, conf, cls in reversed(det):
-        if args.save_bbox:  # Write to file
-            xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-            line = (cls, *xywh, conf) if args.save_conf else (cls, *xywh)  # label format
-            with open(txt_path + '.txt', 'a') as f:
-                f.write(('%g ' * len(line)).rstrip() % line + '\n')
-
-        if args.save_detect_img:  # Add bbox to image
-            c = int(cls)  # integer class
-            label = None if args.hide_labels else (names[c] if args.hide_conf else f'{names[c]} {conf:.2f}')
-            annotator.box_label(xyxy, label, color=colors(c, True))
-
-    # Stream results
-    im0 = annotator.result()
-
-    # Save results (image with detections)
-    if args.save_detect_img:
-        if mode == 'image':
-            cv2.imwrite(save_path, cv2.cvtColor(im0, cv2.COLOR_RGB2BGR))
-        elif mode == 'video':
-            im_save_path = save_path[:-4] + "_" + str(frame) + ".jpg"
-            cv2.imwrite(im_save_path, cv2.cvtColor(im0, cv2.COLOR_RGB2BGR))
-
-    # Print detection results
-    # s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if args.save_bbox else ''
+def save_detection_result(args, pred_images, GT_ids, path):
+    path = path[0]
+    name = path.split("/")[-1].split(".")[0]
     
+    if not os.path.exists(args.output_dir):
+        os.mkdir(args.output_dir)
+    
+    im_save_folder = os.path.join(args.output_dir, args.detect_save_dir)
+    if not os.path.exists(im_save_folder):
+        os.mkdir(im_save_folder)
+    
+    
+    for idx, gtid in enumerate(GT_ids):
+        if int(gtid.item()) > 0:
+            im_save_path = os.path.join(im_save_folder, f"{str(int(gtid.item())).zfill(4)}_{name}_{str(idx).zfill(2)}.jpg")
+        else: 
+            im_save_path = os.path.join(im_save_folder, f"{int(gtid.item())}_{name}_{str(idx).zfill(2)}.jpg")
+        cv2.imwrite(im_save_path, pred_images[idx].numpy())
+        
     
     
 def post_preds_images(det, original_img):
@@ -106,12 +89,16 @@ def post_preds_images(det, original_img):
     return pred_images
 
 def find_gt_ids(det, labels):
-    
+    # det [N, 6], labels [N, 5] 
+    # both x1,y1,x2,y2
     gt_ids = []
-    # import ipdb; ipdb.set_trace()
-    # for d in det:
-    # iou = box_iou(labels[:, :4].to("cuda"), det[:, :4])
-    
+    if det == []:
+        return gt_ids
+    else:
+        iou = box_iou(labels[:, :4], det[:, :4]) # [N_lab, N_pred]
+        max_value, max_index = torch.max(iou, dim=0)
+        gt_ids = labels[max_index.cpu(), -1]
+            
     return gt_ids
 
 def process_batch(detections, labels, iouv):

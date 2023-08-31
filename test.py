@@ -58,12 +58,12 @@ class ReIDPerson:
         self.args.stride = 32
         self.args.num_workers = 4
         self.args.max_det = 1000
+        self.args.batch_size = 1
         
         
         self.args.conf_thres = float(self.args.conf_thres)
         self.args.iou_thres = float(self.args.iou_thres)
         self.args.detect_imgsz = [int(self.args.detect_imgsz), int(self.args.detect_imgsz)]
-        
         
         
         ################################################
@@ -139,20 +139,24 @@ class ReIDPerson:
             
             path, original_img, img_preprocess, labels = data
             img_preprocess = img_preprocess.to(self.device)
+            labels = labels.to(self.device)
             
             # detect_preds = [image1, image2, ...] of not normalized, HWC 
             # GT_ids = [id1, id2, ...] of int
             # if not detected, both are []
             detect_preds, GT_ids = do_detect(self.args, self.detection_network, img_preprocess, original_img, labels[0])
+            
+            # For eval or save_results    
+            # save_detection_result(self.args, detect_preds, GT_ids, path)
+            
 
             # JH todo 
             
-            ### if GT_ids == None: just run and save extracted features (infer)
-            ### else (GT_ids !=None): run and eval ReID score(test)
-            ### if test and infer architecture differs a lot, just define two functions seperately. 
+            ### if GT_ids == []: just run and save extracted features (infer)
+            ### else (GT_ids != []): run and eval ReID score(test)
             
             # reid_result = do_recognition()
-            # reid_result = post_process(reid_result)
+            # reid_result = eval(reid_result)
             reid_result = None
             
             
