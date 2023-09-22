@@ -101,16 +101,17 @@ MODEL.RESUME_TRAINING : True로 설정해서 학습 이어나가기
 
 MODEL.PRETRAIN_PATH : 이어서 학습할 모델의 웨이트 파일 경로
 
+### CTL
+```
+python train_ctl.py --config_fil "configs/256_resnet50.yml" DATASETS.NAMES 'market1501' MODEL.RESUME_TRAINING True  MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/ctl/exp0/5.pth"
+```
+
 ## === Finetune with Octuplet Loss ===
 ```
 python finetune_octuplet.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501' MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/ctl/exp0/119.pth" 
 ```
 
 
-### CTL
-```
-python train_ctl.py --config_fil "configs/256_resnet50.yml" DATASETS.NAMES 'market1501' MODEL.RESUME_TRAINING True  MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/ctl/exp0/5.pth"
-```
 
 ## === Test ===
 ```
