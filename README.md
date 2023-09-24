@@ -86,10 +86,13 @@ python train_ctl.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.
 
 ## === Resume Training ===
 ### Baseline
-위 Train 파리미터에서 MODEL.RESUME_TRAINING, MODEL.PRETRAIN_PATH 추가
 ```
-python train.py --config_file "configs/256_resnet50.yml" DATASETS.NAMES 'market1501' MODEL.RESUME_TRAINING True MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/baseline/exp0/20.pth" 
+python train.py --config_file "configs/256_resnet50.yml" DATASETS.NAMES 'market1501' MODEL.RESUME_TRAINING True MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/baseline/exp0/x1/20.pth" 
 ```
+
+--config_file : backbone으로 사용할 네트워크 configuration설정, ./configs/ 폴더에서 적합한 .yml파일 골라서 사용
+
+DATASETS.NAMES : Resume할 데이터셋 이름 (기존 train된 데이터셋과 일치)
 
 MODEL.RESUME_TRAINING : True로 설정해서 학습 이어나가기
 
@@ -97,7 +100,7 @@ MODEL.PRETRAIN_PATH : 이어서 학습할 모델의 웨이트 파일 경로
 
 ### CTL
 ```
-python train_ctl.py --config_fil "configs/256_resnet50.yml" DATASETS.NAMES 'market1501' MODEL.RESUME_TRAINING True  MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/ctl/exp0/5.pth"
+python train_ctl.py --config_fil "configs/256_resnet50.yml" DATASETS.NAMES 'market1501' MODEL.RESUME_TRAINING True  MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/ctl/exp0/x1/5.pth"
 ```
 
 ## === Finetune with Octuplet Loss ===

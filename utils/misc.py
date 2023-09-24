@@ -380,7 +380,6 @@ def run_train(cfg, method, writer, dm, scale):
         }, os.path.join(savepath, f"{epoch}.pth"))  
     
 
-
 def finetune_oct(cfg, method, writer, dm, scale):
     print("FINETUNING FROM CHECKPOINT")
     checkpoint = torch.load(cfg.MODEL.PRETRAIN_PATH)

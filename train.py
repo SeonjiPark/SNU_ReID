@@ -64,10 +64,10 @@ if __name__ == "__main__":
     cfg.merge_from_list(args.opts)
     
     i = 0 
-    output_dir = f"./logs/{cfg.DATASETS.NAMES}/{cfg.MODEL.NAME}/baseline/{args.scale}/exp{i}"
+    output_dir = f"./logs/{cfg.DATASETS.NAMES}/{cfg.MODEL.NAME}/baseline/x{args.scale}/exp{i}"
     while os.path.exists(output_dir):
         i+=1
-        output_dir = f"./logs/{cfg.DATASETS.NAMES}/{cfg.MODEL.NAME}/baseline/{args.scale}/exp{i}"
+        output_dir = f"./logs/{cfg.DATASETS.NAMES}/{cfg.MODEL.NAME}/baseline/x{args.scale}/exp{i}"
     
     cfg.OUTPUT_DIR = output_dir
 
