@@ -9,7 +9,7 @@ import argparse
 import os
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"  # Arrange GPU devices starting from 0
-os.environ["CUDA_VISIBLE_DEVICES"]= "2"  # Set the GPU 2 to use
+os.environ["CUDA_VISIBLE_DEVICES"]= "1"  # Set the GPU 2 to use
 
 from collections import defaultdict
 from pathlib import Path

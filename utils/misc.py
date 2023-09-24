@@ -355,7 +355,16 @@ def run_train(cfg, method, writer, dm, scale):
             else:
                 print("Test baseline")
                 run_test(cfg, method, dm, load_path)
-    
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'opt_state_dict': opt.state_dict(),
+        'opt_center_state_dict': opt_center.state_dict(),
+        'num_query': dm.num_query,
+        'num_classes': dm.num_classes,
+        'scale' : scale
+        }, os.path.join(savepath, f"{epoch}.pth"))  
+        
     print("Final Evaluation and Save")
     load_path = os.path.join(savepath, f"{epoch}.pth")
 
@@ -369,16 +378,7 @@ def run_train(cfg, method, writer, dm, scale):
     else:
         print("Test baseline")
         run_test(cfg, method, dm, load_path)
-    torch.save({
-        'epoch': epoch,
-        'model_state_dict': model.state_dict(),
-        'opt_state_dict': opt.state_dict(),
-        'opt_center_state_dict': opt_center.state_dict(),
-        'num_query': dm.num_query,
-        'num_classes': dm.num_classes,
-        'scale' : scale
-        }, os.path.join(savepath, f"{epoch}.pth"))  
-    
+
 
 def finetune_oct(cfg, method, writer, dm, scale):
     print("FINETUNING FROM CHECKPOINT")
