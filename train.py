@@ -48,6 +48,9 @@ if __name__ == "__main__":
         "--config_file", default="./configs/256_resnet50.yml", help="path to config file", type=str
     )
     parser.add_argument(
+        "--scale", default="1", help="path to config file", type=str
+    )
+    parser.add_argument(
         "opts",
         help="Modify config options using the command-line",
         default=None,
@@ -61,11 +64,11 @@ if __name__ == "__main__":
     cfg.merge_from_list(args.opts)
     
     i = 0 
-    output_dir = f"./logs/{cfg.DATASETS.NAMES}/{cfg.MODEL.NAME}/baseline/exp{i}"
+    output_dir = f"./logs/{cfg.DATASETS.NAMES}/{cfg.MODEL.NAME}/baseline/{args.scale}/exp{i}"
     while os.path.exists(output_dir):
         i+=1
-        output_dir = f"./logs/{cfg.DATASETS.NAMES}/{cfg.MODEL.NAME}/baseline/exp{i}"
+        output_dir = f"./logs/{cfg.DATASETS.NAMES}/{cfg.MODEL.NAME}/baseline/{args.scale}/exp{i}"
     
     cfg.OUTPUT_DIR = output_dir
 
-    run_main(cfg, CTLModel)
+    run_main(cfg, CTLModel, args.scale)

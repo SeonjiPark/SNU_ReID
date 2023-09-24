@@ -1,4 +1,3 @@
-
 # encoding: utf-8
 """
 Adapted and extended by:
@@ -7,10 +6,8 @@ Adapted and extended by:
 
 import argparse
 import os
-
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"  # Arrange GPU devices starting from 0
-os.environ["CUDA_VISIBLE_DEVICES"]= "2"  # Set the GPU 2 to use
-
+# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"]="3"
 from collections import defaultdict
 from pathlib import Path
 
@@ -25,7 +22,6 @@ from tqdm import tqdm
 from config import cfg
 from modelling.bases import ModelBase
 from utils.misc import run_main
-
 
 class CTLModel(ModelBase):
     def __init__(self, cfg=None, **kwargs):
@@ -47,10 +43,10 @@ class CTLModel(ModelBase):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CLT Model Training")
     parser.add_argument(
-        "--config_file", default="./configs/256_resnet50.yml", help="path to config file", type=str
+        "--config_file", default="", help="path to config file", type=str
     )
     parser.add_argument(
-        "--scale", default="1", help="path to config file", type=str
+        "--scale", default="2", help="path to config file", type=str
     )
     parser.add_argument(
         "opts",
@@ -65,13 +61,7 @@ if __name__ == "__main__":
         cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.MODEL.USE_CENTROIDS = True
-    
-    i = 0 
-    output_dir = f"./logs/{cfg.DATASETS.NAMES}/{cfg.MODEL.NAME}/ctl/{args.scale}/exp{i}"
-    while os.path.exists(output_dir):
-        i+=1
-        output_dir = f"./logs/{cfg.DATASETS.NAMES}/{cfg.MODEL.NAME}/ctl/{args.scale}/exp{i}"
-
-    cfg.OUTPUT_DIR = output_dir
-
+    cfg.FINETUNE_OCT = True
+    cfg.MODEL.RESUME_TRAINING = True
+    print("RUN MAIN")
     run_main(cfg, CTLModel, args.scale)

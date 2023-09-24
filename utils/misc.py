@@ -66,7 +66,7 @@ def get_backbone(name: str, **kwargs) -> torch.nn.Module:
 
     return model
 
-def run_test(cfg, method, dm, load_path):
+def run_test(cfg, method, dm, load_path, scale = 1):
     #checkpoint = torch.load("/data/jaep0805/PersonReID/SNU_ReID_pytorch_scratch/checkpoints/2.pth")
     checkpoint = torch.load(load_path)
     
@@ -84,6 +84,9 @@ def run_test(cfg, method, dm, load_path):
     for batch in tqdm(dm.val_dataloader()):
         x, class_labels, camid, idx = batch
         x, class_labels, camid = x.cuda(), class_labels.cuda(), camid.cuda()
+
+        x = torch.nn.functional.interpolate(x, scale_factor = 1/int(scale), mode = 'bicubic')
+        x = torch.nn.functional.interpolate(x, scale_factor = int(scale), mode = 'bicubic')
 
         with torch.no_grad():
             _, emb = model.backbone(x)
@@ -110,7 +113,7 @@ def run_test(cfg, method, dm, load_path):
     model.get_val_metrics(embeddings, labels, camids,  dm.val_dataloader())
     del embeddings, labels, camids
 
-def run_train(cfg, method, writer, dm):
+def run_train(cfg, method, writer, dm, scale):
 
     if cfg.MODEL.RESUME_TRAINING:
         print("RESUME TRAINING")
@@ -123,6 +126,7 @@ def run_train(cfg, method, writer, dm):
                 ).cuda()
         epoch_start = checkpoint['epoch'] + 1
         model.load_state_dict(checkpoint['model_state_dict'])
+        scale = checkpoint['scale']
         
         optimizers_list, lr_scheduler = model.configure_optimizers()
         opt, opt_center = optimizers_list[0], optimizers_list[1]
@@ -157,6 +161,10 @@ def run_train(cfg, method, writer, dm):
                 unique_classes = len(np.unique(class_labels.detach().cpu()))
 
                 x, class_labels, camid, isReal = x.cuda(), class_labels.cuda(), camid.cuda(), isReal.cuda()
+
+                x = torch.nn.functional.interpolate(x, scale_factor = 1/int(scale), mode = 'bicubic')
+                x = torch.nn.functional.interpolate(x, scale_factor = int(scale), mode = 'bicubic')
+
                 features = model(x)
 
                 opt_center.zero_grad()
@@ -331,7 +339,8 @@ def run_train(cfg, method, writer, dm):
                 'opt_state_dict': opt.state_dict(),
                 'opt_center_state_dict': opt_center.state_dict(),
                 'num_query': dm.num_query,
-                'num_classes': dm.num_classes
+                'num_classes': dm.num_classes,
+                'scale' : scale
                 }, os.path.join(savepath, f"{epoch}.pth"))  
             
             load_path = os.path.join(savepath, f"{epoch}.pth")
@@ -346,10 +355,34 @@ def run_train(cfg, method, writer, dm):
             else:
                 print("Test baseline")
                 run_test(cfg, method, dm, load_path)
+    
+    print("Final Evaluation and Save")
+    load_path = os.path.join(savepath, f"{epoch}.pth")
+
+    if model.hparams.MODEL.USE_CENTROIDS:
+        cfg.MODEL.USE_CENTROIDS = not cfg.MODEL.USE_CENTROIDS
+        print("Test baseline")
+        run_test(cfg, method, dm, load_path)
+        print("Test CTL")
+        cfg.MODEL.USE_CENTROIDS = not cfg.MODEL.USE_CENTROIDS
+        run_test(cfg, method, dm, load_path)
+    else:
+        print("Test baseline")
+        run_test(cfg, method, dm, load_path)
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'opt_state_dict': opt.state_dict(),
+        'opt_center_state_dict': opt_center.state_dict(),
+        'num_query': dm.num_query,
+        'num_classes': dm.num_classes,
+        'scale' : scale
+        }, os.path.join(savepath, f"{epoch}.pth"))  
+    
 
 
 def finetune_oct(cfg, method, writer, dm, scale):
-    print("FINETUNING FROM CEHCKPOINT")
+    print("FINETUNING FROM CHECKPOINT")
     checkpoint = torch.load(cfg.MODEL.PRETRAIN_PATH)
     cfg.OUTPUT_DIR = os.path.dirname(cfg.MODEL.PRETRAIN_PATH)
     model = method(
@@ -580,21 +613,49 @@ def finetune_oct(cfg, method, writer, dm, scale):
                 'opt_state_dict': opt.state_dict(),
                 'opt_center_state_dict': opt_center.state_dict(),
                 'num_query': dm.num_query,
-                'num_classes': dm.num_classes
+                'num_classes': dm.num_classes,
+                'scale' : scale
                 }, os.path.join(savepath, f"{epoch}.pth"))  
             
             load_path = os.path.join(savepath, f"{epoch}.pth")
-
+            print(f"Test on x{scale}")
             if model.hparams.MODEL.USE_CENTROIDS:
                 cfg.MODEL.USE_CENTROIDS = not cfg.MODEL.USE_CENTROIDS
                 print("Test baseline")
-                run_test(cfg, method, dm, load_path)
+                run_test(cfg, method, dm, load_path, scale)
                 print("Test CTL")
                 cfg.MODEL.USE_CENTROIDS = not cfg.MODEL.USE_CENTROIDS
-                run_test(cfg, method, dm, load_path)
+                run_test(cfg, method, dm, load_path, scale)
             else:
                 print("Test baseline")
-                run_test(cfg, method, dm, load_path)
+                run_test(cfg, method, dm, load_path, scale)
+    
+
+
+
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'opt_state_dict': opt.state_dict(),
+        'opt_center_state_dict': opt_center.state_dict(),
+        'num_query': dm.num_query,
+        'num_classes': dm.num_classes,
+        'scale' : scale
+        }, os.path.join(savepath, f"{epoch}.pth"))  
+
+    print(f"Final Evaluation on x{scale} and Save")
+    load_path = os.path.join(savepath, f"{epoch}.pth")
+
+    if model.hparams.MODEL.USE_CENTROIDS:
+        cfg.MODEL.USE_CENTROIDS = not cfg.MODEL.USE_CENTROIDS
+        print("Test baseline")
+        run_test(cfg, method, dm, load_path, scale)
+        print("Test CTL")
+        cfg.MODEL.USE_CENTROIDS = not cfg.MODEL.USE_CENTROIDS
+        run_test(cfg, method, dm, load_path, scale)
+    else:
+        print("Test baseline")
+        run_test(cfg, method, dm, load_path, scale)
 
 def run_single(cfg, method, scale):
     print(f"GPU numbers: {torch.cuda.device_count()}")
@@ -607,10 +668,10 @@ def run_single(cfg, method, scale):
     if cfg.TEST.ONLY_TEST:
         load_path = cfg.MODEL.PRETRAIN_PATH
         print("Test baseline")
-        run_test(cfg, method, dm, load_path)
+        run_test(cfg, method, dm, load_path, scale)
         cfg.MODEL.USE_CENTROIDS = not cfg.MODEL.USE_CENTROIDS
         print("Test CTL")
-        run_test(cfg, method, dm, load_path)
+        run_test(cfg, method, dm, load_path, scale)
         cfg.MODEL.USE_CENTROIDS = not cfg.MODEL.USE_CENTROIDS
     elif cfg.FINETUNE_OCT:
         print("Finetune octuplet loss")
@@ -620,7 +681,7 @@ def run_single(cfg, method, scale):
     else:
         print("Train")
         writer = SummaryWriter()
-        run_train(cfg, method, writer, dm)
+        run_train(cfg, method, writer, dm, scale)
         
 def run_main(cfg, method, scale = 1):
     if cfg.MODEL.USE_CENTROIDS == True:

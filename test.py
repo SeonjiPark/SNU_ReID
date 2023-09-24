@@ -48,6 +48,9 @@ if __name__ == "__main__":
         "--config_file", default="./configs/256_resnet50.yml", help="path to config file", type=str
     )
     parser.add_argument(
+        "--scale", default="1", help="path to config file", type=str
+    )
+    parser.add_argument(
         "opts",
         help="Modify config options using the command-line",
         default=None,
@@ -62,4 +65,4 @@ if __name__ == "__main__":
     
     cfg.TEST.ONLY_TEST = True
 
-    run_main(cfg, CTLModel)
+    run_main(cfg, CTLModel, args.scale)

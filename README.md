@@ -14,6 +14,8 @@ conda activate ENV_NAME
 pip install -r requirements.txt
 ```
 
+
+
 # Directory 설명
 
 ```
@@ -77,16 +79,18 @@ python makelr.py --scale 2 --data_dir "./market1501"
 ## === Train ===
 ### Baseline
 ```
-python train.py --config_file "configs/256_resnet50.yml" DATASETS.NAMES 'market1501'
+python train.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501'
 ```
 
 --config_file : backbone으로 사용할 네트워크 configuration설정, ./configs/ 폴더에서 적합한 .yml파일 골라서 사용
 
-DATASETS.NAMES : 사용할 데이터셋 폴더이름으로 설정 
+--scale : 학습할 downsampling 해상도 
+
+DATASETS.NAMES : Train 진행할 데이터셋 이름 (PRW, market1501)
 
 ### CTL
 ```
-python train_ctl.py --config_file "configs/256_resnet50.yml" DATASETS.NAMES 'market1501'
+python train_ctl.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501'
 ```
 
 
@@ -107,9 +111,23 @@ python train_ctl.py --config_fil "configs/256_resnet50.yml" DATASETS.NAMES 'mark
 ```
 
 ## === Finetune with Octuplet Loss ===
+
 ```
-python finetune_octuplet.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501' MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/ctl/exp0/119.pth" 
+python finetune_octuplet.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501' MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/base/exp0/119_last.pth" 
 ```
+
+--config_file : backbone으로 사용할 네트워크 configuration설정, ./configs/ 폴더에서 적합한 .yml파일 골라서 사용
+
+--scale : Octuplet loss로 finetuning할 downsampling 해상도. 
+
+MODEL.PRETRAIN_PATH : 이어서 finetuning할 모델의 웨이트 파일 경로
+
+
+```
+python finetune_octuplet_ctl.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501' MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/ctl/exp0/119_last.pth" 
+```
+
+CTL모델을 finetuning시 finetune_octuplet_ctl.py를 쓰면 된다.
 
 
 
@@ -120,7 +138,7 @@ python test.py --config_file "configs/256_resnet50.yml" DATASETS.NAMES 'market15
 
 --config_file : backbone으로 사용할 네트워크 configuration설정, ./configs/ 폴더에서 적합한 .yml파일 골라서 사용 (학습한 모델과 동일 config 이용)
 
-DATASETS.NAMES : Test를 진행할 데이터셋 폴더이름으로 설정 
+DATASETS.NAMES : Test를 진행할 데이터셋 이름 (PRW, market1501)
 
 MODEL.PRETRAIN_PATH : Test할 모델의 웨이트 파일 경로
 
