@@ -106,21 +106,23 @@ python train_ctl.py --config_fil "configs/256_resnet50.yml" DATASETS.NAMES 'mark
 ## === Finetune with Octuplet Loss ===
 
 ```
-python finetune_octuplet.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501' MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/base/exp0/119_last.pth" 
+python finetune_octuplet.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501' MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/base/exp0/x1/119_last.pth" 
 ```
 
 --config_file : backbone으로 사용할 네트워크 configuration설정, ./configs/ 폴더에서 적합한 .yml파일 골라서 사용
 
 --scale : Octuplet loss로 finetuning할 downsampling 해상도. 
 
+DATASETS.NAMES : Finetune 진행할 데이터셋 이름 (PRW, market1501)
+
 MODEL.PRETRAIN_PATH : 이어서 finetuning할 모델의 웨이트 파일 경로
 
 
+### CTL
 ```
-python finetune_octuplet_ctl.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501' MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/ctl/exp0/119_last.pth" 
+python finetune_octuplet_ctl.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501' MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/ctl/exp0/x1/119_last.pth" 
 ```
 
-CTL모델을 finetuning시 finetune_octuplet_ctl.py를 쓰면 된다.
 
 
 
@@ -169,7 +171,7 @@ DATASETS.ROOT_DIR: inference할 query 데이터셋 폴더 이름 지정 (데이�
 
 MODEL.PRETRAIN_PATH : Inference를 진행할 모델의 웨이트 파일 경로
 
-### Together
+### Inference : Create Embeddings + Similarity Search
 
 Create Embeddings 와 Similarity Search를 진행.
 
