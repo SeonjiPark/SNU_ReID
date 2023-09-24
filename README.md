@@ -64,16 +64,6 @@ pip install -r requirements.txt
 
 ```
 
-Octuplet loss를 활용해 finetuning하기위해서는 저해상도 이미지들을 직접 만들어줘야한다.
-makelr.py를 활용해서 x2, x4 downsample된 데이터셋을 만들어준다.
-
-```
-python makelr.py --scale 2 --data_dir "./market1501"
-```
-
---scale : 몇배로 downsampling 할것인가
-
---data_dir : downsampling을 진행할 dataset 경로
 
 # 코드 실행 설명
 ## === Train ===
