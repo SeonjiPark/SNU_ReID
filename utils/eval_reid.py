@@ -41,7 +41,7 @@ def eval_func(
     num_valid_q = 0.0  # number of valid query
     topk_results = []  # Store topk retureval
     single_performance = []
-    for q_idx in tqdm(range(num_q)):
+    for q_idx in range(num_q):
         # get query pid and camid
         q_pid = q_pids[q_idx]
         q_camid = q_camids[q_idx]

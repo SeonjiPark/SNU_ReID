@@ -81,7 +81,7 @@ def run_test(cfg, method, dm, load_path, scale = 1):
     model.backbone.eval()
     model.bn.eval()
     outputs = []
-    for batch in tqdm(dm.val_dataloader()):
+    for batch in dm.val_dataloader():
         x, class_labels, camid, idx = batch
         x, class_labels, camid = x.cuda(), class_labels.cuda(), camid.cuda()
 
@@ -409,7 +409,7 @@ def finetune_oct(cfg, method, writer, dm, scale):
             for idx, batch in enumerate(tepoch):
                 tepoch.set_description(f"Epoch {epoch}")
 
-                model.hparams.SOLVER.BASE_LR = 0.01
+                model.hparams.SOLVER.BASE_LR = 0.001
                 if epoch >= epoch_start+9:
                     model.hparams.SOLVER.BASE_LR = model.hparams.SOLVER.BASE_LR /8
                 elif epoch >= epoch_start+7:
@@ -417,6 +417,8 @@ def finetune_oct(cfg, method, writer, dm, scale):
                 elif epoch >= epoch_start+4:
                     model.hparams.SOLVER.BASE_LR = model.hparams.SOLVER.BASE_LR /2
 
+                for pg in opt.param_groups:
+                    pg["lr"] =  model.hparams.SOLVER.BASE_LR
 
                 x, class_labels, camid, isReal = batch
                 
