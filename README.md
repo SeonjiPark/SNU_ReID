@@ -78,10 +78,14 @@ python train.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAME
 
 DATASETS.NAMES : Train 진행할 데이터셋 이름 (PRW, market1501)
 
+Train했을시에, ./logs폴더에 {DATASET.NAMES}/baseline/{scale}/exp0/안에 {epoch}.pth 이름으로 웨이트가 저장됨
+
 ### CTL
 ```
 python train_ctl.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501'
 ```
+
+
 
 
 ## === Resume Training ===
@@ -117,6 +121,7 @@ DATASETS.NAMES : Finetune 진행할 데이터셋 이름 (PRW, market1501)
 
 MODEL.PRETRAIN_PATH : 이어서 finetuning할 모델의 웨이트 파일 경로
 
+Finetuning했을시에, 불러온 MODEL.PRETRAIN_PATH의 폴더안에 {epoch}x4.pth 이름으로 웨이트가 저장됨
 
 ### CTL
 ```
@@ -128,10 +133,12 @@ python finetune_octuplet_ctl.py --config_file "configs/256_resnet50.yml" --scale
 
 ## === Test ===
 ```
-python test.py --config_file "configs/256_resnet50.yml" DATASETS.NAMES 'market1501' MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/ctl/exp0/5.pth"
+python test.py --config_file "configs/256_resnet50.yml" --scale 4 DATASETS.NAMES 'market1501' MODEL.PRETRAIN_PATH "./logs/market1501/resnet50/ctl/exp0/5.pth"
 ```
 
 --config_file : backbone으로 사용할 네트워크 configuration설정, ./configs/ 폴더에서 적합한 .yml파일 골라서 사용 (학습한 모델과 동일 config 이용)
+
+--scale : Test할 downsampling 해상도. 
 
 DATASETS.NAMES : Test를 진행할 데이터셋 이름 (PRW, market1501)
 

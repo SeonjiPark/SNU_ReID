@@ -614,9 +614,9 @@ def finetune_oct(cfg, method, writer, dm, scale):
                 'num_query': dm.num_query,
                 'num_classes': dm.num_classes,
                 'scale' : scale
-                }, os.path.join(savepath, f"{epoch}.pth"))  
+                }, os.path.join(savepath, f"{epoch}_x{scale}.pth"))  
             
-            load_path = os.path.join(savepath, f"{epoch}.pth")
+            load_path = os.path.join(savepath, f"{epoch}_x{scale}.pth")
             print(f"Test on x{scale}")
             if model.hparams.MODEL.USE_CENTROIDS:
                 cfg.MODEL.USE_CENTROIDS = not cfg.MODEL.USE_CENTROIDS
@@ -640,10 +640,10 @@ def finetune_oct(cfg, method, writer, dm, scale):
         'num_query': dm.num_query,
         'num_classes': dm.num_classes,
         'scale' : scale
-        }, os.path.join(savepath, f"{epoch}.pth"))  
+        }, os.path.join(savepath, f"{epoch}_x{scale}.pth"))  
 
     print(f"Final Evaluation on x{scale} and Save")
-    load_path = os.path.join(savepath, f"{epoch}.pth")
+    load_path = os.path.join(savepath, f"{epoch}_x{scale}.pth")
 
     if model.hparams.MODEL.USE_CENTROIDS:
         cfg.MODEL.USE_CENTROIDS = not cfg.MODEL.USE_CENTROIDS
