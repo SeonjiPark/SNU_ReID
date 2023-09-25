@@ -36,6 +36,7 @@ if __name__ == "__main__":
         "--images-in-subfolders",
         help="if images are stored in the subfloders use this flag. If images are directly under DATASETS.ROOT_DIR path do not use it.",
         action="store_true",
+        default = False
     )
     parser.add_argument(
         "--print_freq",
