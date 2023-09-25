@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
     sys.path.append(os.path.join(str(ROOT), "SNU_PersonReID")) 
 
 from SNU_PersonDetection.execute import *
+from SNU_PersonReID.execute import *
 
 
 class ReIDPerson:
@@ -45,12 +46,15 @@ class ReIDPerson:
         config.read(cfg_dir)
 
         person_config = config["person_config"]
-        
-        
         # add config values to self.args
         for k, v in person_config.items():
             setattr(self.args, k, v)
-        
+
+
+        reid_config = config["reid_config"]
+        # add config values to self.args
+        for k, v in reid_config.items():
+            setattr(self.args, k, v)
         
         ################################################
         #        1.2 for Detection                     #
@@ -70,7 +74,12 @@ class ReIDPerson:
         #        1.3 for ReID                          #
         ################################################
         
-        
+        self.args.reid_batch_size = 128
+        self.args.use_unknown = False
+        self.args.reid_threshold = 0.8
+        self.args.topk = 1
+        self.args.num_classes = 751
+
 
         return (self.args)
     
@@ -96,18 +105,19 @@ class ReIDPerson:
 
         # Recognition Network
         # JH todo
-        # self.reid_network = build_reid_model(self.args, self.device)
-        # self.reid_network.to(self.device)
+        self.reid_network = build_reid_model(self.args, self.device)
+        self.reid_network.to(self.device)
 
         ################################################
         #    4. Load Detection / Recognition Network   #
         ################################################
         #JH todo
-        # recognition_checkpoint = torch.load(self.args.reid_weight_file)
-        # self.recognition_network.load_state_dict(recognition_checkpoint['network'])
+        reid_checkpoint = torch.load(self.args.reid_weight_file)
+        self.reid_network.load_state_dict(reid_checkpoint['model_state_dict'], strict = False)
+
         with torch.no_grad():
             self.detection_network.eval()
-            # self.recognition_network.eval()
+            self.reid_network.eval()
 
         ################################################
         #      5. Make Result Saving Directories       #
@@ -135,8 +145,10 @@ class ReIDPerson:
 
     def test(self, dataloader):
         
+        total_embedding = []
+        total_gt = []
+        total_pred_class = []
         for data in dataloader:
-            
             path, original_img, img_preprocess, labels = data
             img_preprocess = img_preprocess.to(self.device)
             labels = labels.to(self.device)
@@ -145,28 +157,37 @@ class ReIDPerson:
             # GT_ids = [id1, id2, ...] of int
             # if not detected, both are []
             detect_preds, GT_ids = do_detect(self.args, self.detection_network, img_preprocess, original_img, labels[0])
-            
+        
             # For eval or save_results    
             # save_detection_result(self.args, detect_preds, GT_ids, path)
             
 
             # JH todo 
-            
             ### if GT_ids == []: just run and save extracted features (infer)
             ### else (GT_ids != []): run and eval ReID score(test)
+            if len(detect_preds) != 0:
+                pred_class, embedding = do_reid(self.args, self.reid_network, detect_preds, GT_ids)
+            else:
+                pred_class = []
+
+            gt_list = GT_ids.tolist()
+            gt_list_int = [int(x) for x in gt_list]
             
-            # reid_result = do_recognition()
-            # reid_result = eval(reid_result)
-            reid_result = None
-            
-            
+            total_pred_class.append(pred_class)
+            print("Predicted class:", pred_class)
+            print("GT class:", gt_list_int)
+            #print(embedding.shape)
+            # total_embedding.append(embedding)
+            # total_gt.append(GT_ids)
             # SJ Todo
             # save_result
-            
+        
+        #eval
+        #if len(GT_ids != 0):
+        #    eval_reid(self.args, self.reid_network, total_embedding, total_gt)
         # JH Todo
-        # Print(ctl eval result)
 
-        return reid_result
+        return total_pred_class
         
 
     """
