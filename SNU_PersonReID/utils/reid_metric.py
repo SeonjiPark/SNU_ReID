@@ -74,8 +74,8 @@ class R1_mAP:
         self.num_query = num_query
         self.max_rank = max_rank
         self.feat_norm = feat_norm
-        self.hparms = model.hparams
-        self.dist_func = get_dist_func(self.hparms.SOLVER.DISTANCE_FUNC)
+        self.args = model.args
+        self.dist_func = get_dist_func("cosine")
         self.model = model
 
     # @staticmethod
@@ -98,18 +98,16 @@ class R1_mAP:
             results.append(distmat_temp)
         return np.hstack(results)
 
-    def compute(self, feats, pids, camids, respect_camids=False):
+    def compute(self, feats, pids, respect_camids=False):
         if self.feat_norm:
             print("The test feature is normalized")
             feats = torch.nn.functional.normalize(feats, dim=1, p=2)
         # query
         qf = feats[: self.num_query]
         q_pids = np.asarray(pids[: self.num_query])
-        q_camids = np.asarray(camids[: self.num_query])
         # gallery
         gf = feats[self.num_query :]
         g_pids = np.asarray(pids[self.num_query :])
-        g_camids = np.asarray(camids[self.num_query :])
         m, n = qf.shape[0], gf.shape[0]
 
         if n > 30000 and self.model.hparams.MODEL.USE_CENTROIDS:
@@ -121,7 +119,7 @@ class R1_mAP:
             indices = np.argsort(distmat, axis=1)
 
         cmc, mAP, all_topk, single_performance = eval_func(
-            indices, q_pids, g_pids, q_camids, g_camids, 50, respect_camids
+            indices, q_pids, g_pids, 50, respect_camids
         )
 
         return cmc, mAP, all_topk

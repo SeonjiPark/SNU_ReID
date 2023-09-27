@@ -91,9 +91,9 @@ class ModelBase(nn.Module):
         return optimizers_list, self.lr_scheduler
     
     def validation_create_centroids(
-        self, embeddings, labels, camids, respect_camids=False
+        self, embeddings, labels
     ):
-        num_query = self.hparams.num_query
+        num_query = self.args.num_query
         # Keep query data samples seperated
         embeddings_query = embeddings[:num_query].cpu()
         labels_query = labels[:num_query]
@@ -115,44 +115,16 @@ class ModelBase(nn.Module):
         centroids_embeddings = []
         centroids_labels = []
 
-        if respect_camids:
-            centroids_camids = []
-            query_camid = camids[:num_query]
-
         # Create centroids for each pid seperately
         for label in unique_labels:
             cmaids_combinations = set()
             inds = labels2idx[label]
             inds_q = labels2idx_q[label]
-            if respect_camids:
-                selected_camids_g = camids[inds]
-
-                selected_camids_q = camids[inds_q]
-                unique_camids = sorted(np.unique(selected_camids_q))
-
-                for current_camid in unique_camids:
-                    # We want to select all gallery images that comes from DIFFERENT cameraId
-                    camid_inds = np.where(selected_camids_g != current_camid)[0]
-                    if camid_inds.shape[0] == 0:
-                        continue
-                    used_camids = sorted(
-                        np.unique(
-                            [cid for cid in selected_camids_g if cid != current_camid]
-                        )
-                    )
-                    if tuple(used_camids) not in cmaids_combinations:
-                        cmaids_combinations.add(tuple(used_camids))
-                        centroids_emb = embeddings_gallery[inds][camid_inds]
-                        centroids_emb = self._calculate_centroids(centroids_emb, dim=0)
-                        centroids_embeddings.append(centroids_emb.detach().cpu())
-                        centroids_camids.append(used_camids)
-                        centroids_labels.append(label)
-
-            else:
-                centroids_labels.append(label)
-                centroids_emb = embeddings_gallery[inds]
-                centroids_emb = self._calculate_centroids(centroids_emb, dim=0)
-                centroids_embeddings.append(centroids_emb.detach().cpu())
+        
+            centroids_labels.append(label)
+            centroids_emb = embeddings_gallery[inds]
+            centroids_emb = self._calculate_centroids(centroids_emb, dim=0)
+            centroids_embeddings.append(centroids_emb.detach().cpu())
 
         # Make a single tensor from query and gallery data
         centroids_embeddings = torch.stack(centroids_embeddings).squeeze()
@@ -161,37 +133,26 @@ class ModelBase(nn.Module):
         )
         centroids_labels = np.hstack((labels_query, np.array(centroids_labels)))
 
-        if respect_camids:
-            query_camid = [[item] for item in query_camid]
-            centroids_camids = query_camid + centroids_camids
 
-        if not respect_camids:
-            # Create dummy camids for query na gallery features
-            # it is used in eval_reid script
-            camids_query = np.zeros_like(labels_query)
-            camids_gallery = np.ones_like(np.array(centroids_labels))
-            centroids_camids = np.hstack((camids_query, np.array(camids_gallery)))
+        # Create dummy camids for query na gallery features
+        # it is used in eval_reid script
+        camids_query = np.zeros_like(labels_query)
+        camids_gallery = np.ones_like(np.array(centroids_labels))
+        centroids_camids = np.hstack((camids_query, np.array(camids_gallery)))
 
         return centroids_embeddings.cpu(), centroids_labels, centroids_camids
 
-    def get_val_metrics(self, embeddings, labels, camids):
+    def get_val_metrics(self, embeddings, labels, val_dataloader):
         self.r1_map_func = R1_mAP(
             model=self,
-            num_query=self.hparams.num_query,
-            feat_norm=self.hparams.TEST.FEAT_NORM,
+            num_query=self.args.num_query,
+            feat_norm=True,
+            #val_dataloader = val_dataloader
         )
-        respect_camids = (
-            True
-            if (
-                self.hparams.MODEL.KEEP_CAMID_CENTROIDS
-                and self.hparams.MODEL.USE_CENTROIDS
-            )
-            else False
-        )
+        respect_camids = False
         cmc, mAP, all_topk = self.r1_map_func.compute(
             feats=embeddings.float(),
             pids=labels,
-            camids=camids,
             respect_camids=respect_camids,
         )
 

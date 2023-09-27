@@ -124,7 +124,21 @@ class ReidBaseDataModule(Dataset):
         )  ## This get replaced with ddp mode by lightning
         return DataLoader(
             self.val,
-            self.cfg.TEST.IMS_PER_BATCH,
+            int(self.cfg.test_ims_per_batch),
+            num_workers=self.num_workers,
+            sampler=sampler,
+            shuffle=False,
+        )
+    
+    def gallery_dataloader(self):
+        sampler = SequentialSampler(
+            self.gallery_val
+        )  ## This get replaced with ddp mode by lightning
+        #print(self.cfg)
+
+        return DataLoader(
+            self.gallery_val,
+            int(self.cfg.test_ims_per_batch),
             num_workers=self.num_workers,
             sampler=sampler,
             shuffle=False,
@@ -136,7 +150,7 @@ class ReidBaseDataModule(Dataset):
         )  ## This get replaced with ddp mode by lightning
         return DataLoader(
             self.train,
-            self.cfg.TEST.IMS_PER_BATCH,
+            int(self.cfg.test_ims_per_batch),
             num_workers=self.num_workers,
             sampler=sampler,
             shuffle=False,

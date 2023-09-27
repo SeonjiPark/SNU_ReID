@@ -11,6 +11,7 @@ import torch
 import torch.nn.functional as F
 import torchvision.transforms as transforms
 from torch.utils.data.dataloader import DataLoader
+from torch.utils.data import DataLoader, Dataset, DistributedSampler, SequentialSampler
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # root directory
@@ -21,7 +22,9 @@ if str(ROOT) not in sys.path:
 
 from SNU_PersonDetection.execute import *
 from SNU_PersonReID.execute import *
+from SNU_PersonReID.execute import _process_dir
 
+import re
 
 class ReIDPerson:
 
@@ -78,9 +81,12 @@ class ReIDPerson:
         self.args.use_unknown = False
         self.args.reid_threshold = 0.8
         self.args.topk = 1
-        self.args.num_classes = 751
+        self.args.num_classes = 697
+        self.args.num_query = 50
 
-
+        self.gallery, self.gallery_dict = _process_dir(self.args.gallery_path, relabel=False)
+        self.query, self.query_dict = _process_dir(self.args.query_path, relabel=False) #len(query) = 3368
+        self.args.num_query = len(self.query)
         return (self.args)
     
     def init_device(self):
@@ -148,8 +154,12 @@ class ReIDPerson:
         total_embedding = []
         total_gt = []
         total_pred_class = []
-        for data in dataloader:
+        outputs = []
+        gallery_dataloader = load_gallery(self.args)
+
+        for idx, data in enumerate(dataloader):
             path, original_img, img_preprocess, labels = data
+
             img_preprocess = img_preprocess.to(self.device)
             labels = labels.to(self.device)
             
@@ -160,13 +170,23 @@ class ReIDPerson:
         
             # For eval or save_results    
             # save_detection_result(self.args, detect_preds, GT_ids, path)
-            
+                            
 
             # JH todo 
             ### if GT_ids == []: just run and save extracted features (infer)
             ### else (GT_ids != []): run and eval ReID score(test)
+
+            #preprocess
+            #resize to 64x128
+            detect_preds_resized = []
+            for i in range(len(detect_preds)):
+                detect_preds[i] = detect_preds[i].permute(2,1,0).unsqueeze(0).float()
+                query = torch.nn.functional.interpolate(detect_preds[i], (128,256), mode = 'bicubic')
+                detect_preds_resized.append(query)
+
+
             if len(detect_preds) != 0:
-                pred_class, embedding = do_reid(self.args, self.reid_network, detect_preds, GT_ids)
+                pred_class, embedding = do_reid(self.args, self.reid_network, detect_preds_resized, GT_ids, gallery_dataloader)
             else:
                 pred_class = []
 
@@ -176,16 +196,47 @@ class ReIDPerson:
             total_pred_class.append(pred_class)
             print("Predicted class:", pred_class)
             print("GT class:", gt_list_int)
-            #print(embedding.shape)
-            # total_embedding.append(embedding)
-            # total_gt.append(GT_ids)
             # SJ Todo
             # save_result
+
+
+            #eval
+            embs = []
+
+            if len(detect_preds) != 0:
+                detect_preds_resized_batched = detect_preds_resized[0]
+                for i in range(1, len(detect_preds_resized)):
+                    detect_preds_resized_batched = torch.cat((detect_preds_resized_batched, detect_preds_resized[i]))
+                
+
+                
+                output = eval1(self.args, self.reid_network, detect_preds_resized_batched.cuda(), GT_ids)
+                outputs.append(output)
+                    
+            if idx > 2:
+                break        
+
+        gallery_loader = load_gallery(self.args)
         
-        #eval
-        #if len(GT_ids != 0):
-        #    eval_reid(self.args, self.reid_network, total_embedding, total_gt)
-        # JH Todo
+        #add gallery embeddings to outputs
+        for i, batch in enumerate(gallery_loader):
+            x, class_labels, camid, idx = batch
+            output = eval1(self.args, self.reid_network, x.cuda(), class_labels.cuda())
+            outputs.append(output)
+        
+        embeddings = torch.cat([x.pop("emb") for x in outputs]).detach().cpu()
+        labels = (
+            torch.cat([x.pop("labels") for x in outputs]).detach().cpu().numpy()
+        )
+        del outputs
+
+        embeddings, labels, camids = self.reid_network.validation_create_centroids(
+            embeddings,
+            labels,
+        )
+
+        self.reid_network.get_val_metrics(embeddings, labels, dataloader)
+        
 
         return total_pred_class
         

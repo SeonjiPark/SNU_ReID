@@ -27,26 +27,29 @@ class PRW(ReidBaseDataModule):
 
     def __init__(self, cfg, **kwargs):
         super().__init__(cfg, **kwargs)
-        self.dataset_dir = osp.join(cfg.DATASETS.ROOT_DIR, self.dataset_dir)
+        self.dataset_dir = osp.join(cfg.dataset_root_dir, self.dataset_dir)
         self.train_dir = osp.join(self.dataset_dir, 'bounding_box_train')
         self.query_dir = osp.join(self.dataset_dir, 'query')
         self.gallery_dir = osp.join(self.dataset_dir, 'bounding_box_test')
 
     def setup(self):
         self._check_before_run()
+        #print(self.cfg)
         transforms_base = ReidTransforms(self.cfg)
         
         train, train_dict = self._process_dir(self.train_dir, relabel=True)
         self.train_dict = train_dict
         self.train_list = train
-        self.train = BaseDatasetLabelledPerPid(train_dict, transforms_base.build_transforms(is_train=True), self.num_instances, self.cfg.DATALOADER.USE_RESAMPLING) #len(self.train) = 3004
+        self.train = BaseDatasetLabelledPerPid(train_dict, transforms_base.build_transforms(is_train=True), self.num_instances, self.cfg.dataloader_use_resampling) #len(self.train) = 3004
 
         query, query_dict = self._process_dir(self.query_dir, relabel=False) #len(query) = 3368
         gallery, gallery_dict  = self._process_dir(self.gallery_dir, relabel=False) #len(gallery) = 15913 junk imgs are ignored
         self.query_list = query
         self.gallery_list = gallery 
         self.val = BaseDatasetLabelled(query+gallery, transforms_base.build_transforms(is_train=False)) #len(self.val) = 19281
-
+        ##added
+        self.gallery_val = BaseDatasetLabelled(gallery, transforms_base.build_transforms(is_train=False)) #len(self.val) = 19281
+        ###
         self._print_dataset_statistics(train, query, gallery)
         # For reid_metic to evaluate properly
         num_query_pids, num_query_imgs, num_query_cams = self._get_imagedata_info(query)

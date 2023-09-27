@@ -18,7 +18,7 @@ class ReidTransforms():
             transform = T.Compose([
                 T.Resize([256,128]),
                 T.RandomHorizontalFlip(p=0.5),
-                T.Pad(self.cfg.INPUT.PADDING),
+                T.Pad(int(self.cfg.input_padding)),
                 T.RandomCrop([256,128]),
                 T.ToTensor(),
                 normalize_transform,

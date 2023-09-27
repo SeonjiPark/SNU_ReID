@@ -23,7 +23,7 @@ def top_k_retrieval(row_matches: np.ndarray, k: list):
 
 
 def eval_func(
-    indices, q_pids, g_pids, q_camids, g_camids, max_rank=50, respect_camids=False
+    indices, q_pids, g_pids, max_rank=50, respect_camids=False
 ):
     """
     Evaluation with market1501 metric
@@ -44,22 +44,12 @@ def eval_func(
     for q_idx in range(num_q):
         # get query pid and camid
         q_pid = q_pids[q_idx]
-        q_camid = q_camids[q_idx]
-
-        # remove gallery samples that have the same pid and camid with query
-        order = indices[q_idx]
-        if respect_camids:
-            remove = [
-                (gpid == q_pid) & (q_camid in gcamid)
-                for gpid, gcamid in zip(g_pids[order], g_camids[order])
-            ]
-        else:
-            remove = (g_pids[order] == q_pid) & (g_camids[order] == q_camid)
-        keep = np.invert(remove)
+        
 
         # compute cmc curve
         # binary vector, positions with value 1 are correct matches
-        orig_cmc = matches[q_idx][keep]
+        #orig_cmc = matches[q_idx][keep]
+        orig_cmc = matches[q_idx]
         if not np.any(orig_cmc):
             # this condition is true when query identity does not appear in gallery
             continue
