@@ -229,13 +229,15 @@ if __name__ == "__main__":
     count = 0
     correct = 0
     for q_num, query_path in enumerate(paths):
+        print(query_path)
         pred = paths_gallery[indices[q_num, :]][0].split('/')[-1].split('_')[0]
         gt = query_path.split('/')[-1].split('_')[0]
+        print(f"Pred: {pred}, GT: {gt}")
         if int(pred) == int(gt):
             correct +=1
         count += 1
     
-    print("Accuracy:", correct/count)
+    print("Accuracy:", correct/count, "(", correct, "/", count, ")")
 
     import csv
     with open('/data/jaep0805/PersonReID/SNU_ReID_pytorch_scratch/output_dir/result.csv', 'w') as csvfile:
