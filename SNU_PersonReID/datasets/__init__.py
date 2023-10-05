@@ -11,12 +11,14 @@ Adapted and extended by:
 from .dukemtmcreid import DukeMTMCreID
 from .market1501 import Market1501
 from .prw import PRW
+from .mot17 import MOT17
 
 
 __factory = {
     "market1501": Market1501,
     "dukemtmcreid": DukeMTMCreID,
     "PRW": PRW,
+    "MOT17": MOT17
 }
 
 
