@@ -32,7 +32,8 @@ exctract_func = (
 
 
 def build_reid_model(args, device):
-    reid_network = CTLModel(args, device=device, dnn=False, data=args.data)
+    # reid_network = CTLModel(args, device=device, dnn=False, data=args.data)
+    reid_network = CTLModel(args, device=device, dnn=False)
     #print(reid_network)
     return reid_network
 
@@ -136,7 +137,7 @@ def _process_dir(dir_path, relabel=False):
     for idx, img_path in enumerate(img_paths):
         pid, camid = map(int, pattern.search(img_path).groups())
         if pid == -1: continue  # junk images are just ignored
-        assert 0 <= pid <= 1501  # pid == 0 means background
+        # assert 0 <= pid <= 1501  # pid == 0 means background
         assert 1 <= camid <= 6
         camid -= 1  # index starts from 0
         if relabel: pid = pid2label[pid]

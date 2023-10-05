@@ -11,7 +11,7 @@ from SNU_PersonDetection.utils.plots import Annotator, colors
 from SNU_PersonDetection.models.common import DetectMultiBackend
 
 def build_detect_model(args, device):
-    detection_network = DetectMultiBackend(args.detection_weight_file, device=device, dnn=False, data=args.data)
+    detection_network = DetectMultiBackend(args.detection_weight_file, device=device, dnn=False, data=args.yolo_data)
     imgsz = check_img_size(args.detect_imgsz, s=args.stride)  # check image size
     detection_network.warmup(imgsz=(1, 3, *imgsz))  # warmup
     
@@ -27,7 +27,7 @@ def preprocess_img(img, fp_flag, img_size, auto=True):
         im = im[None]  # expand for batch dim
     return im
 
-def do_detect(args, detection_network, img, original_img, labels):
+def do_detect(args, detection_network, img, original_img, labels=None):
     # Do Detection Inference
     im_resize = preprocess_img(img, detection_network.fp16, args.detect_imgsz, args.stride)
     pred = detection_network(im_resize, augment=False, visualize=False)
@@ -45,16 +45,17 @@ def do_detect(args, detection_network, img, original_img, labels):
     H, W = original_img.shape[1:3]
     gain = min(h / H, w / W)  # gain  = old / new
     pad = (w - W * gain) / 2, (h - H * gain) / 2  # wh padding
-    labels= xywhn2xyxy(labels, w=W, h=H, padw=pad[0], padh=pad[1])
-    
-    
-    # SJ todo 
     pred_images = post_preds_images(det, original_img)
-    ids = find_gt_ids(det, labels)
+    if labels != []:
+        labels= xywhn2xyxy(labels, w=W, h=H, padw=pad[0], padh=pad[1])
+        ids = find_gt_ids(det, labels)
+        return pred_images, det, ids
+    else:
+        return pred_images, det, None
     
-    return pred_images, ids
+    
 
-def save_detection_result(args, pred_images, GT_ids, path):
+def save_detected_boxes(args, pred_images, GT_ids, path):
     path = path[0]
     name = path.split("/")[-1].split(".")[0]
     
@@ -73,7 +74,57 @@ def save_detection_result(args, pred_images, GT_ids, path):
             im_save_path = os.path.join(im_save_folder, f"{int(gtid.item())}_{name}_{str(idx).zfill(2)}.jpg")
         cv2.imwrite(im_save_path, pred_images[idx].numpy())
         
+
+def save_detection_boxes(args, pred_images, GT_ids, path):
+    path = path[0]
+    name = path.split("/")[-1].split(".")[0]
     
+    if not os.path.exists(args.output_dir):
+        os.mkdir(args.output_dir)
+    
+    im_save_folder = os.path.join(args.output_dir, args.detect_save_dir)
+    if not os.path.exists(im_save_folder):
+        os.mkdir(im_save_folder)
+    
+    
+    for idx, gtid in enumerate(GT_ids):
+        if int(gtid.item()) > 0:
+            im_save_path = os.path.join(im_save_folder, f"{str(int(gtid.item())).zfill(4)}_{name}_{str(idx).zfill(2)}.jpg")
+        else: 
+            im_save_path = os.path.join(im_save_folder, f"{int(gtid.item())}_{name}_{str(idx).zfill(2)}.jpg")
+        cv2.imwrite(im_save_path, pred_images[idx].numpy())
+        
+        
+    
+def save_result(args, path, original_img, det, pred_class, names, GT_ids):
+    # import ipdb; ipdb.set_trace()
+    annotator = Annotator(original_img.numpy(), line_width=3, pil=True, example=str(names))
+    
+    im_name = path.split("/")[-1]
+    
+    if args.use_GT_IDs:
+        for box, pred, gt in zip(det, pred_class, GT_ids):
+            label = f'{pred}_{gt}'
+            annotator.box_label(box, label, color=colors(0, True))
+
+    else:
+        for box, pred in zip(det, pred_class):
+            label = f'{pred}'
+            annotator.box_label(box[:4].cpu().detach().numpy(), label, color=colors(0, True))
+        
+    
+    im = annotator.result()
+    cv2.imwrite(os.path.join(os.path.join(args.output_dir, args.reid_save_dir), im_name), im)
+    return None
+
+def save_txt(args, path, det, pred_class):
+    name = path.split("/")[-1]
+    f = open(os.path.join(os.path.join(args.output_dir, "pred_txt"), name.split(".")[0] + ".txt"), "w")
+    for box, pred in zip(det, pred_class):
+        f.write(f"{box[0]} {box[1]} {box[2]} {box[3]} {pred}\n")
+    
+    return None
+
     
 def post_preds_images(det, original_img):
     pred_images = []
@@ -123,86 +174,6 @@ def process_batch(detections, labels, iouv):
         matches = torch.from_numpy(matches).to(iouv.device)
         correct[matches[:, 1].long()] = matches[:, 2:3] >= iouv
     return correct
-
-
-class LoadDatas:
-    def __init__(self, path):
-        p = str(Path(path).resolve())  # os-agnostic absolute path
-        if '*' in p:
-            files = sorted(glob.glob(p, recursive=True))  # glob
-        elif os.path.isdir(p):
-            files = sorted(glob.glob(os.path.join(p, '*.*')))  # dir
-        elif os.path.isfile(p):
-            files = [p]  # files
-        else:
-            raise Exception(f'ERROR: {p} does not exist')
-
-        IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp'  # include image suffixes
-        VID_FORMATS = 'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv'  # include video suffixes
-
-        images = [x for x in files if x.split('.')[-1].lower() in IMG_FORMATS]
-        videos = [x for x in files if x.split('.')[-1].lower() in VID_FORMATS]
-        ni, nv = len(images), len(videos)
-
-        # self.img_size = img_size
-        # self.stride = stride
-        self.files = images + videos
-        self.nf = ni + nv  # number of files
-        self.video_flag = [False] * ni + [True] * nv
-        self.mode = 'image'
-        # self.auto = auto
-        self.fps = 24.0
-        if any(videos):
-            self.new_video(videos[0])  # new video
-        else:
-            self.cap = None
-        assert self.nf > 0, f'No images or videos found in {p}. ' \
-                            f'Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}'
-
-    def __iter__(self):
-        self.count = 0
-        return self
-
-    def __next__(self):
-        if self.count == self.nf:
-            raise StopIteration
-        path = self.files[self.count]
-
-        if self.video_flag[self.count]:
-            # Read video
-            self.mode = 'video'
-            self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-            ret_val, img0 = self.cap.read()
-            while not ret_val:
-                self.count += 1
-                self.cap.release()
-                if self.count == self.nf:  # last video
-                    raise StopIteration
-                else:
-                    path = self.files[self.count]
-                    self.new_video(path)
-                    ret_val, img0 = self.cap.read()
-
-            self.frame += 1
-            s = f'video {self.count + 1}/{self.nf} ({self.frame}/{self.frames}) {path}: '
-
-        else:
-            self.fps = 24.0
-            # Read image
-            self.count += 1
-            img0 = cv2.imread(path)  # BGR
-            assert img0 is not None, f'Image Not Found {path}'
-
-        return path, img0
-
-    def new_video(self, path):
-        self.frame = 0
-        self.cap = cv2.VideoCapture(path)
-        self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
-    def __len__(self):
-        return self.nf  # number of files
-    
     
     
 class LoadImagesandLabels:
@@ -238,7 +209,11 @@ class LoadImagesandLabels:
             
             label = []
             for d in datas:
-                cls, cx, cy, w, h, id = d.split()
+                if len(d.split()) == 6:
+                    cls, cx, cy, w, h, id = d.split()
+                else:
+                    cls, cx, cy, w, h = d.split()
+                    id = -1
                 label.append([float(cx), float(cy), float(w), float(h), int(id)])
             label = np.asarray(label)
             
@@ -259,3 +234,40 @@ class LoadImagesandLabels:
     def __len__(self):
         return len(self.imgfiles)  # number of files
 
+
+
+class LoadImages:
+    def __init__(self, path, stride, img_size):
+        self.stride = stride
+        self.img_size = img_size
+        
+        p = str(Path(path).resolve())  # os-agnostic absolute path
+        if '*' in p:
+            files = sorted(glob.glob(p, recursive=True))  # glob
+        elif os.path.isdir(p):
+            files = sorted(glob.glob(os.path.join(p, '*.*')))  # dir
+        elif os.path.isfile(p):
+            files = [p]  # files
+        else:
+            raise Exception(f'ERROR: {p} does not exist')
+
+        IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp'  # include image suffixes
+
+        images = [x for x in files if x.split('.')[-1].lower() in IMG_FORMATS]
+
+        self.imgfiles = images
+        
+        sa = os.sep + 'images' + os.sep # /images/ substrings
+
+
+    def __getitem__(self, index):
+        impath = self.imgfiles[index]
+        
+        img = cv2.imread(impath)  # BGR
+        assert img is not None, f'Image Not Found {impath}'
+        img_preprocess = letterbox(img, self.img_size, stride=self.stride, auto=True)[0]
+        
+        return impath, img, img_preprocess, []
+
+    def __len__(self):
+        return len(self.imgfiles)  # number of files
