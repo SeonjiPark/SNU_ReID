@@ -83,10 +83,9 @@ class ReIDPerson:
         self.args.use_unknown = False
         self.args.reid_threshold = 0.8
         self.args.topk = 1
-        self.args.num_classes = 697
-        self.args.num_query = 50
+        self.args.num_classes = 751
 
-        self.gallery, self.gallery_dict = _process_dir(self.args.gallery_path, relabel=False)
+        self.gallery, self.gallery_dict = _process_dir(self.args.gallery_path, relabel=False, dataset_name = self.args.dataset_name)
         # self.query, self.query_dict = _process_dir(self.args.query_path, relabel=False) #len(query) = 3368
         # self.args.num_query = len(self.query)
         return (self.args)
@@ -157,7 +156,6 @@ class ReIDPerson:
         total_gt = []
         total_pred_class = []
         outputs = []
-        gallery_dataloader = load_gallery(self.args)
 
         for idx, data in enumerate(dataloader):
             path, original_img, img_preprocess, labels = data
@@ -169,21 +167,14 @@ class ReIDPerson:
             # GT_ids = [id1, id2, ...] of int
             # if not detected, both are []
             detect_preds, det, GT_ids = do_detect(self.args, self.detection_network, img_preprocess, original_img, labels[0])
-        
+            
+            detect_preds_preprocessed = preprocess_reid(self.args, detect_preds)
+
             # For save_ detection_results    
             # save_detection_result(self.args, detect_preds, GT_ids, path)
 
-            #preprocess
-            #resize to 64x128
-            detect_preds_resized = []
-            for i in range(len(detect_preds)):
-                detect_preds[i] = detect_preds[i].permute(2,1,0).unsqueeze(0).float()
-                query = torch.nn.functional.interpolate(detect_preds[i], (128,256), mode = 'bicubic')
-                detect_preds_resized.append(query)
-
-
             if len(detect_preds) != 0:
-                pred_class, embedding = do_reid(self.args, self.reid_network, detect_preds_resized, GT_ids, gallery_dataloader)
+                pred_class, embedding = do_reid(self.args, self.reid_network, detect_preds_preprocessed, GT_ids)
             else:
                 pred_class = []
 

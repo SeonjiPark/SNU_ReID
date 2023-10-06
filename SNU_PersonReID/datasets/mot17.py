@@ -39,7 +39,7 @@ class MOT17(ReidBaseDataModule):
 
     def __init__(self, cfg, **kwargs):
         super().__init__(cfg, **kwargs)
-        self.dataset_dir = osp.join(cfg.DATASETS.ROOT_DIR, self.dataset_dir)
+        self.dataset_dir = osp.join(cfg.dataset_root_dir, self.dataset_dir)
         self.train_dir = osp.join(self.dataset_dir, 'bounding_box_train')
         self.query_dir = osp.join(self.dataset_dir, 'query')
         self.gallery_dir = osp.join(self.dataset_dir, 'bounding_box_test')
@@ -51,13 +51,15 @@ class MOT17(ReidBaseDataModule):
         train, train_dict = self._process_dir(self.train_dir, relabel=True)
         self.train_dict = train_dict
         self.train_list = train
-        self.train = BaseDatasetLabelledPerPid(train_dict, transforms_base.build_transforms(is_train=True), self.num_instances, self.cfg.DATALOADER.USE_RESAMPLING) #len(self.train) = 3004
+        self.train = BaseDatasetLabelledPerPid(train_dict, transforms_base.build_transforms(is_train=True), self.num_instances, self.cfg.dataloader_use_resampling) #len(self.train) = 3004
 
         query, query_dict = self._process_dir(self.query_dir, relabel=False, q = True) #len(query) = 3368
         gallery, gallery_dict  = self._process_dir(self.gallery_dir, relabel=False, q = False) #len(gallery) = 15913 junk imgs are ignored
         self.query_list = query
         self.gallery_list = gallery 
         self.val = BaseDatasetLabelled(query+gallery, transforms_base.build_transforms(is_train=False)) #len(self.val) = 19281
+        ##added
+        self.gallery_val = BaseDatasetLabelled(gallery, transforms_base.build_transforms(is_train=False)) #len(self.val) = 19281
 
         self._print_dataset_statistics(train, query, gallery)
         # For reid_metic to evaluate properly

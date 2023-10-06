@@ -35,7 +35,7 @@ def pil_loader(path: str) -> Image.Image:
 
 
 def get_all_images(path: Union[str, List[str]]) -> List[str]:
-    print(path, len(os.listdir(path)))
+    #print(path, len(os.listdir(path)))
     if os.path.isdir(path):
         images = os.listdir(path)
         images = [os.path.join(path, item) for item in images if is_image_file(item)]
@@ -67,7 +67,6 @@ class ImageFolderWithPaths(ImageFolder):
 class ImageDataset(Dataset):
     def __init__(self, dataset: str, transform=None, loader=pil_loader):
         self.dataset = get_all_images(dataset)
-        #print(self.dataset)
         self.transform = transform
         self.loader = loader
 

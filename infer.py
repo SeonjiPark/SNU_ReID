@@ -7,12 +7,10 @@ from pathlib import Path
 import torch
 import torch.backends.cudnn as cudnn
 
-import torch
 import torch.nn.functional as F
-import torchvision.transforms as transforms
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data import DataLoader, Dataset, DistributedSampler, SequentialSampler
-
+import ast
 from config import parse_args
 
 FILE = Path(__file__).resolve()
@@ -80,13 +78,14 @@ class ReIDPerson:
         
         #JH 정리
         self.args.reid_batch_size = 128 #?
-        self.args.use_unknown = False
+        self.args.use_unknown = True
         self.args.reid_threshold = 0.8
         self.args.topk = 1
-        self.args.num_classes = 697
-        self.args.num_query = 50
-
-        self.gallery, self.gallery_dict = _process_dir(self.args.gallery_path, relabel=False)
+        self.args.num_classes = 751
+        self.args.input_size_test = ast.literal_eval(self.args.input_size_test)
+        self.args.input_pixel_mean = ast.literal_eval(self.args.input_pixel_mean)
+        self.args.input_pixel_std = ast.literal_eval(self.args.input_pixel_std)
+        self.gallery, self.gallery_dict = _process_dir(self.args.gallery_path, relabel=False, dataset_name = self.args.dataset_name)
         # self.query, self.query_dict = _process_dir(self.args.query_path, relabel=False) #len(query) = 3368
         # self.args.num_query = len(self.query)
         return (self.args)
@@ -164,7 +163,6 @@ class ReIDPerson:
         total_gt = []
         total_pred_class = []
         outputs = []
-        gallery_dataloader = load_gallery(self.args)
 
         for idx, data in enumerate(dataloader):
             path, original_img, img_preprocess, labels = data
@@ -177,16 +175,10 @@ class ReIDPerson:
             # if dataset is not with GT or args.use_GT_IDs = False, GT_ids = None
             detect_preds, det, GT_ids = do_detect(self.args, self.detection_network, img_preprocess, original_img, labels)
 
-            #preprocess
-            #resize to 64x128
-            detect_preds_resized = []
-            for i in range(len(detect_preds)):
-                detect_preds[i] = detect_preds[i].permute(2,1,0).unsqueeze(0).float()
-                query = torch.nn.functional.interpolate(detect_preds[i], (128,256), mode = 'bicubic')
-                detect_preds_resized.append(query)
-
+            detect_preds_preprocessed = preprocess_reid(self.args, detect_preds)
+            
             if len(detect_preds) != 0:
-                pred_class, embedding = do_reid(self.args, self.reid_network, detect_preds_resized, GT_ids, gallery_dataloader)
+                pred_class, embedding = do_reid(self.args, self.reid_network, detect_preds_preprocessed, GT_ids)
             else:
                 pred_class = []
             
