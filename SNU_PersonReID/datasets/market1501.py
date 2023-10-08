@@ -58,8 +58,6 @@ class Market1501(ReidBaseDataModule):
         self.query_list = query
         self.gallery_list = gallery 
         self.val = BaseDatasetLabelled(query+gallery, transforms_base.build_transforms(is_train=False)) #len(self.val) = 19281
-        ##added
-        self.gallery_val = BaseDatasetLabelled(gallery, transforms_base.build_transforms(is_train=False)) #len(self.val) = 19281
 
         self._print_dataset_statistics(train, query, gallery)
         # For reid_metic to evaluate properly

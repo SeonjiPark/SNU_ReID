@@ -21,11 +21,6 @@ from SNU_PersonReID.utils.reid_metric import get_dist_func
 from torch.utils.data import DataLoader, Dataset, DistributedSampler, SequentialSampler
 from datasets import init_dataset
 
-### Functions used to extract pair_id
-exctract_func = (
-    lambda x: (x).rsplit(".", 1)[0].rsplit("_", 1)[0]
-)  ## To extract pid from filename. Example: /path/to/dir/product001_04.jpg -> pid = product001
-
 #changed to match
 exctract_func = (
     lambda x: (x).rsplit(".", 1)[0].split('/')[-1].rsplit("_")[0]
@@ -36,7 +31,6 @@ def build_reid_model(args, device):
     # reid_network = CTLModel(args, device=device, dnn=False, data=args.data)
     reid_network = CTLModel(args, device=device, dnn=False)
     return reid_network
-
 
 
 def do_reid(args, reid_network, pred_querys, gt_ids):
@@ -67,7 +61,7 @@ def do_reid(args, reid_network, pred_querys, gt_ids):
 
 
     ### Calculate similarity
-    dist_func = get_dist_func("cosine")
+    dist_func = get_dist_func(args.dist_func)
     distmat = dist_func(x=embeddings, y=embeddings_gallery).cpu().numpy()
     indices = np.argsort(distmat, axis=1) #prints a matrix of sorted indices
     ### Constrain the results to only topk most similar ids
@@ -116,7 +110,7 @@ def _process_dir(dir_path, relabel=False, dataset_name = ""):
     
     pid_container = set()
     for img_path in img_paths: 
-        if dataset_name == "MOT17":
+        if "MOT17" in dataset_name:
             pid = int(img_path.split('/')[-1].split('_')[0])
         else:
             pid, _ = map(int, pattern.search(img_path).groups())
@@ -128,7 +122,7 @@ def _process_dir(dir_path, relabel=False, dataset_name = ""):
     dataset = []
 
     for idx, img_path in enumerate(img_paths):
-        if dataset_name == "MOT17":
+        if "MOT17" in dataset_name:
             pid = int(img_path.split('/')[-1].split('_')[0])
             camid = 2
         else:

@@ -74,15 +74,14 @@ class ReIDPerson:
         ################################################
         
         self.args.gallery_path = os.path.join(self.args.dataset_root_dir, f'{self.args.dataset_name}_reid/bounding_box_test')
-        # self.args.query_path = os.path.join(self.args.dataset_root_dir, f'{self.args.dataset_name}_reid/query')
         
         #JH 정리
         self.args.reid_batch_size = 128 #?
         self.args.use_unknown = True
         self.args.reid_threshold = 0.8
         self.args.topk = 1
-        self.args.num_classes = 751
-        self.args.input_size_test = ast.literal_eval(self.args.input_size_test)
+        self.args.num_classes = 697  #697 for PRW or 751 for market1501
+        self.args.input_size_test = ast.literal_eval(self.args.input_size_test) # ast.literal_eval : to turn string of list to list
         self.args.input_pixel_mean = ast.literal_eval(self.args.input_pixel_mean)
         self.args.input_pixel_std = ast.literal_eval(self.args.input_pixel_std)
         self.gallery, self.gallery_dict = _process_dir(self.args.gallery_path, relabel=False, dataset_name = self.args.dataset_name)
@@ -159,10 +158,7 @@ class ReIDPerson:
 
     def infer(self, dataloader):
         
-        total_embedding = []
-        total_gt = []
         total_pred_class = []
-        outputs = []
 
         for idx, data in enumerate(dataloader):
             path, original_img, img_preprocess, labels = data
