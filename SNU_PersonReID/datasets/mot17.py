@@ -51,14 +51,15 @@ class MOT17(ReidBaseDataModule):
         train, train_dict = self._process_dir(self.train_dir, relabel=True)
         self.train_dict = train_dict
         self.train_list = train
-        self.train = BaseDatasetLabelledPerPid(train_dict, transforms_base.build_transforms(is_train=True), self.num_instances, self.cfg.dataloader_use_resampling) #len(self.train) = 3004
+        self.train = BaseDatasetLabelledPerPid(train_dict, transforms_base.build_transforms(is_train=True), 4, True) #len(self.train) = 3004
 
         query, query_dict = self._process_dir(self.query_dir, relabel=False, q = True) #len(query) = 3368
         gallery, gallery_dict  = self._process_dir(self.gallery_dir, relabel=False, q = False) #len(gallery) = 15913 junk imgs are ignored
         self.query_list = query
         self.gallery_list = gallery 
         self.val = BaseDatasetLabelled(query+gallery, transforms_base.build_transforms(is_train=False)) #len(self.val) = 19281
-        
+        self.gallery_val = BaseDatasetLabelled(gallery, transforms_base.build_transforms(is_train=False)) #len(self.val) = 19281
+
         self._print_dataset_statistics(train, query, gallery)
         # For reid_metic to evaluate properly
         num_query_pids, num_query_imgs, num_query_cams = self._get_imagedata_info(query)

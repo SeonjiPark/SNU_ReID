@@ -65,35 +65,35 @@ class ReidBaseDataModule(Dataset):
             gallery
         )
 
-        print("Dataset statistics:")
-        print("  ----------------------------------------")
-        print("  subset   | # ids | # images | # cameras")
-        print("  ----------------------------------------")
-        print(
-            "  train    | {:5d} | {:8d} | {:9d}".format(
-                num_train_pids, num_train_imgs, num_train_cams
-            )
-        )
-        print(
-            "  query    | {:5d} | {:8d} | {:9d}".format(
-                num_query_pids, num_query_imgs, num_query_cams
-            )
-        )
-        print(
-            "  gallery  | {:5d} | {:8d} | {:9d}".format(
-                num_gallery_pids, num_gallery_imgs, num_gallery_cams
-            )
-        )
-        print("  ----------------------------------------")
+        # print("Dataset statistics:")
+        # print("  ----------------------------------------")
+        # print("  subset   | # ids | # images | # cameras")
+        # print("  ----------------------------------------")
+        # print(
+        #     "  train    | {:5d} | {:8d} | {:9d}".format(
+        #         num_train_pids, num_train_imgs, num_train_cams
+        #     )
+        # )
+        # print(
+        #     "  query    | {:5d} | {:8d} | {:9d}".format(
+        #         num_query_pids, num_query_imgs, num_query_cams
+        #     )
+        # )
+        # print(
+        #     "  gallery  | {:5d} | {:8d} | {:9d}".format(
+        #         num_gallery_pids, num_gallery_imgs, num_gallery_cams
+        #     )
+        # )
+        # print("  ----------------------------------------")
 
     def _check_before_run(self):
         """Check if all files are available before going deeper"""
         if not osp.exists(self.dataset_dir):
             raise RuntimeError("'{}' is not available".format(self.dataset_dir))
-        if not osp.exists(self.train_dir):
-            raise RuntimeError("'{}' is not available".format(self.train_dir))
-        if not osp.exists(self.query_dir):
-            raise RuntimeError("'{}' is not available".format(self.query_dir))
+        # if not osp.exists(self.train_dir):
+        #     raise RuntimeError("'{}' is not available".format(self.train_dir))
+        # if not osp.exists(self.query_dir):
+        #     raise RuntimeError("'{}' is not available".format(self.query_dir))
         if not osp.exists(self.gallery_dir):
             raise RuntimeError("'{}' is not available".format(self.gallery_dir))
 
@@ -124,7 +124,7 @@ class ReidBaseDataModule(Dataset):
         )  ## This get replaced with ddp mode by lightning
         return DataLoader(
             self.val,
-            int(self.cfg.test_ims_per_batch),
+            self.cfg.test_ims_per_batch,
             num_workers=self.num_workers,
             sampler=sampler,
             shuffle=False,
@@ -134,11 +134,10 @@ class ReidBaseDataModule(Dataset):
         sampler = SequentialSampler(
             self.gallery_val
         )  ## This get replaced with ddp mode by lightning
-        #print(self.cfg)
 
         return DataLoader(
             self.gallery_val,
-            int(self.cfg.test_ims_per_batch),
+            self.cfg.test_ims_per_batch,
             num_workers=self.num_workers,
             sampler=sampler,
             shuffle=False,

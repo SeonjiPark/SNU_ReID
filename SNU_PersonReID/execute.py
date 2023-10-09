@@ -32,6 +32,54 @@ def build_reid_model(args, device):
     reid_network = CTLModel(args, device=device, dnn=False)
     return reid_network
 
+def calc_embeddings(args, reid_network, pred_querys, gt_ids, outputs):
+
+    if len(pred_querys) != 0:        
+        x = torch.cat(pred_querys, dim=0).cuda()
+        x = torch.nn.functional.interpolate(x, scale_factor = 1/int(args.scale), mode = 'bicubic')
+        x = torch.nn.functional.interpolate(x, scale_factor = int(args.scale), mode = 'bicubic')
+
+        with torch.no_grad():
+            _, emb = reid_network.backbone(x)
+            emb = reid_network.bn(emb)
+        output = {"emb": emb, "labels": gt_ids.cuda()}
+        outputs.append(output)
+    else:
+        print("No detection result")
+
+    return outputs
+
+def do_eval(args, reid_network, outputs):
+
+    args.num_query = len(torch.cat([x["labels"] for x in outputs]).detach().cpu().numpy())
+
+    gallery_loader = load_gallery(args)
+    
+    #add gallery embeddings to outputs
+    for i, batch in enumerate(gallery_loader):
+        x, class_labels, camid, idx = batch
+        x = x.cuda()
+        x = torch.nn.functional.interpolate(x, scale_factor = 1/int(args.scale), mode = 'bicubic')
+        x = torch.nn.functional.interpolate(x, scale_factor = int(args.scale), mode = 'bicubic')
+
+        with torch.no_grad():
+            _, emb = reid_network.backbone(x)
+            emb = reid_network.bn(emb)
+        output = {"emb": emb, "labels": class_labels.cuda()}
+
+        outputs.append(output)
+    
+    embeddings = torch.cat([x.pop("emb") for x in outputs]).detach().cpu()
+    labels = (
+        torch.cat([x.pop("labels") for x in outputs]).detach().cpu().numpy()
+    )
+
+    embeddings, labels, camids = reid_network.validation_create_centroids(
+        embeddings,
+        labels,
+    )
+
+    reid_network.get_val_metrics(embeddings, labels, camids)
 
 def do_reid(args, reid_network, pred_querys, gt_ids):
     gallery_dataloader = make_inference_data_loader(args, args.gallery_path, ImageDataset)
@@ -137,3 +185,11 @@ def _process_dir(dir_path, relabel=False, dataset_name = ""):
 
     return dataset, dataset_dict
 
+def load_gallery(args):
+    dm = init_dataset(
+        args.dataset_name, cfg=args, num_workers=8
+    )
+    dm.setup()
+
+    gallery_loader = dm.val_dataloader()
+    return gallery_loader

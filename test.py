@@ -83,10 +83,12 @@ class ReIDPerson:
         self.args.use_unknown = True
         self.args.reid_threshold = 0.8
         self.args.topk = 1
-        self.args.num_classes = 697  #697 for PRW or 751 for market1501
+        self.args.num_classes = 751  #697 for PRW or 751 for market1501
         self.args.input_size_test = ast.literal_eval(self.args.input_size_test) # ast.literal_eval : to turn string of list to list
         self.args.input_pixel_mean = ast.literal_eval(self.args.input_pixel_mean)
         self.args.input_pixel_std = ast.literal_eval(self.args.input_pixel_std)
+        self.args.test_ims_per_batch = int(self.args.test_ims_per_batch)
+
         self.gallery, self.gallery_dict = _process_dir(self.args.gallery_path, relabel=False, dataset_name = self.args.dataset_name)
         return (self.args)
     
@@ -179,51 +181,23 @@ class ReIDPerson:
             gt_list_int = [int(x) for x in gt_list]
             
             total_pred_class.append(pred_class)
+
+            
             print("Predicted class:", pred_class)
             print("GT class:", gt_list_int)
             # SJ Todo
             # save_result
-            
-            """
-
             #eval
-            embs = []
+            
+            outputs = calc_embeddings(self.args, self.reid_network, detect_preds_preprocessed, GT_ids, outputs)
 
-            if len(detect_preds) != 0:
-                detect_preds_resized_batched = detect_preds_resized[0]
-                for i in range(1, len(detect_preds_resized)):
-                    detect_preds_resized_batched = torch.cat((detect_preds_resized_batched, detect_preds_resized[i]))
-                
+            if idx > 3:
+                break   
 
-                
-                output = eval1(self.args, self.reid_network, detect_preds_resized_batched.cuda(), GT_ids)
-                outputs.append(output)
-                    
-            if idx > 2:
-                break        
 
-        gallery_loader = load_gallery(self.args)
-        
-        #add gallery embeddings to outputs
-        for i, batch in enumerate(gallery_loader):
-            x, class_labels, camid, idx = batch
-            output = eval1(self.args, self.reid_network, x.cuda(), class_labels.cuda())
-            outputs.append(output)
-        
-        embeddings = torch.cat([x.pop("emb") for x in outputs]).detach().cpu()
-        labels = (
-            torch.cat([x.pop("labels") for x in outputs]).detach().cpu().numpy()
-        )
+        do_eval(self.args, self.reid_network, outputs)
+
         del outputs
-
-        embeddings, labels, camids = self.reid_network.validation_create_centroids(
-            embeddings,
-            labels,
-        )
-
-        self.reid_network.get_val_metrics(embeddings, labels, dataloader)
-        """
-        
 
         return total_pred_class
 
@@ -241,5 +215,5 @@ if __name__ == "__main__":
     print("Start Re-Identification")
     recog_result = reidperson.test(dataloader)
     
-    print(recog_result)
+    #print(recog_result)
     

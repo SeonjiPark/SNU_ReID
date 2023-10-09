@@ -57,7 +57,7 @@ class DukeMTMCreID(ReidBaseDataModule):
         self.query_list = query
         self.gallery_list = gallery
 
-        self.train = BaseDatasetLabelledPerPid(train_dict, transforms_base.build_transforms(is_train=True), self.num_instances, self.cfg.DATALOADER.USE_RESAMPLING)
+        self.train = BaseDatasetLabelledPerPid(train_dict, transforms_base.build_transforms(is_train=True), 4, True)
         self.val = BaseDatasetLabelled(query+gallery, transforms_base.build_transforms(is_train=False))
 
         self._print_dataset_statistics(train, query, gallery)

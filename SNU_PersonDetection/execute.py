@@ -199,7 +199,7 @@ class LoadImagesandLabels:
         
         sa, sb = os.sep + 'images' + os.sep, os.sep + 'labels_id' + os.sep  # /images/, /labels/ substrings
         self.labfiles = sorted([sb.join(x.rsplit(sa, 1)).rsplit('.', 1)[0] + '.txt' for x in self.imgfiles])
-        
+        #print(self.labfiles)
         assert len(self.labfiles) == len(self.imgfiles), f'Number of images and labels are not same.'
         
         self.labels = []

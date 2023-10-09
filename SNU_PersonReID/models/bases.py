@@ -142,14 +142,16 @@ class ModelBase(nn.Module):
 
         return centroids_embeddings.cpu(), centroids_labels, centroids_camids
 
-    def get_val_metrics(self, embeddings, labels, val_dataloader):
+    def get_val_metrics(self, embeddings, labels, camids):
         self.r1_map_func = R1_mAP(
             model=self,
             num_query=self.args.num_query,
             feat_norm=True,
             #val_dataloader = val_dataloader
         )
-        respect_camids = False
+        num_unique_ints = len(set(camids))
+        if num_unique_ints < 3:
+            respect_camids = False #False if MOT17
         cmc, mAP, all_topk = self.r1_map_func.compute(
             feats=embeddings.float(),
             pids=labels,
@@ -162,13 +164,6 @@ class ModelBase(nn.Module):
             topks[f"Top-{kk}"] = top_k
         print(f"mAP: {mAP}")
 
-        log_data = {"mAP": mAP}
-
-        # TODO This line below is hacky, but it works when grad_monitoring is active
-        #self.trainer.logger_connector.callback_metrics.update(log_data)
-        #log_data = {**log_data, **topks}
-        #self.trainer.logger.log_metrics(log_data, step=self.trainer.current_epoch)
-        
     @staticmethod
     def create_masks_train(class_labels):
         labels_dict = defaultdict(list)

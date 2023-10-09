@@ -2,17 +2,29 @@ import argparse
 
 def parse_training_args(parser):
     # dir & weight parameter
-    #parser.add_argument('--infer_data_dir', type=str, default='../DATASET/MOT17/test/images', help='Only for inference')
-    parser.add_argument('--infer_data_dir', type=str, default='../DATASET/PRW_yolo/test/images', help='Only for inference')
-    parser.add_argument('--dataset_root_dir', type=str, default='../DATASET/', help='root data dir for gallery, gallery must be placed like "{root_dir}/{dataset_name}_reid/gallery" ')
-    parser.add_argument('--dataset_name', type=str, default='PRW', help='for setting gallery path')
     
+    #MOT17
+    parser.add_argument('--infer_data_dir', type=str, default='../DATASET/MOT17/train/MOT17-04-FRCNN_query/images', help='Only for inference')
+    parser.add_argument('--dataset_root_dir', type=str, default='../DATASET/', help='root data dir for gallery, gallery must be placed like "{root_dir}/{dataset_name}_reid/gallery" ')
+    parser.add_argument('--dataset_name', type=str, default='MOT17', help='for setting gallery path')
+    
+    parser.add_argument('--detection_weight_file', type=str, default='./weights/detection_MOT17.pt')
+    parser.add_argument('--reid_weight_file', type=str, default='./weights/reid_market1501_pretrained.pth')
+
+    # #PRW_yolo
+    # parser.add_argument('--infer_data_dir', type=str, default='../DATASET/PRW_yolo/test/images', help='Only for inference')
+    # parser.add_argument('--dataset_root_dir', type=str, default='../DATASET/', help='root data dir for gallery, gallery must be placed like "{root_dir}/{dataset_name}_reid/gallery" ')
+    # parser.add_argument('--dataset_name', type=str, default='PRW', help='for setting gallery path')
+    
+    # parser.add_argument('--detection_weight_file', type=str, default='./weights/detection_PRW.pt')
+    # parser.add_argument('--reid_weight_file', type=str, default='./weights/reid_PRW_pretrained.pth')
+
+
+
     parser.add_argument('--output_dir', type=str, default='results')
     parser.add_argument('--detect_save_dir', type=str, default='detection')
     parser.add_argument('--reid_save_dir', type=str, default='reid')
     
-    parser.add_argument('--detection_weight_file', type=str, default='./weights/detection_PRW.pt')
-    parser.add_argument('--reid_weight_file', type=str, default='./weights/reid_PRW_pretrained.pth')
     
     # Session Parameters
     parser.add_argument('--gpu_num', type=int, default=1)

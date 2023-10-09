@@ -75,7 +75,7 @@ class R1_mAP:
         self.max_rank = max_rank
         self.feat_norm = feat_norm
         self.args = model.args
-        self.dist_func = get_dist_func("cosine")
+        self.dist_func = get_dist_func(self.args.dist_func)
         self.model = model
 
     # @staticmethod
