@@ -73,14 +73,14 @@ class ReIDPerson:
         #        1.3 for ReID                          #
         ################################################
         
-        self.args.gallery_path = os.path.join(self.args.dataset_root_dir, f'{self.args.dataset_name}_reid/bounding_box_test')
+        self.args.gallery_path = os.path.join(self.args.dataset_root_dir, f'{self.args.dataset_name}_04_reid/bounding_box_test')
         
         #JH 정리
         self.args.reid_batch_size = 128 #?
         self.args.use_unknown = True
         self.args.reid_threshold = 0.8
         self.args.topk = 1
-        self.args.num_classes = 697  #697 for PRW or 751 for market1501
+        self.args.num_classes = 80  #697 for PRW or 751 for market1501 #ckpt에서 override 되도록 수정하기 
         self.args.input_size_test = ast.literal_eval(self.args.input_size_test) # ast.literal_eval : to turn string of list to list
         self.args.input_pixel_mean = ast.literal_eval(self.args.input_pixel_mean)
         self.args.input_pixel_std = ast.literal_eval(self.args.input_pixel_std)

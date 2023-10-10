@@ -47,8 +47,8 @@ def do_detect(args, detection_network, img, original_img, labels=None):
     pad = (w - W * gain) / 2, (h - H * gain) / 2  # wh padding
     pred_images = post_preds_images(det, original_img)
     if labels != []:
-        labels= xywhn2xyxy(labels, w=W, h=H, padw=pad[0], padh=pad[1])
-        ids = find_gt_ids(det, labels)
+        labels= xywhn2xyxy(labels[0], w=W, h=H, padw=pad[0], padh=pad[1])
+        ids = find_gt_ids(det, labels.to(detection_network.device))
         return pred_images, det, ids
     else:
         return pred_images, det, None
@@ -97,14 +97,14 @@ def save_detection_boxes(args, pred_images, GT_ids, path):
         
     
 def save_result(args, path, original_img, det, pred_class, names, GT_ids):
-    # import ipdb; ipdb.set_trace()
     annotator = Annotator(original_img.numpy(), line_width=3, pil=True, example=str(names))
+    # import ipdb; ipdb.set_trace()
     
     im_name = path.split("/")[-1]
     
     if args.use_GT_IDs:
         for box, pred, gt in zip(det, pred_class, GT_ids):
-            label = f'{pred}_{gt}'
+            label = f'{pred}__{int(gt)}'
             annotator.box_label(box, label, color=colors(0, True))
 
     else:
