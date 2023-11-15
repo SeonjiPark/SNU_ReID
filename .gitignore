@@ -1,6 +1,0 @@
-./weights/
-./*.jpg
-./__pycache__/
-./*/__pycache__/
-./results/*
-
