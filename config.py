@@ -1,7 +1,8 @@
 import argparse
 
 def parse_training_args(parser):
-    # dir & weight parameter
+    
+    # Directory parameters
     
     #MOT17
     parser.add_argument('--infer_data_dir', type=str, default='../DATASET/MOT17/train/MOT17-04-FRCNN_query/images', help='Only for inference')
