@@ -101,9 +101,9 @@ Inference는 infer_data_dir 경로에 있는 이미지들에 대해 detection + 
 
 지정한 갤러리와 비교해서 각 이미지마다 검출된 ID 예측값을 출력한다.
 
-'''
+```
 예) Predicted Class : [3, 2, 1, 6]
-'''
+```
 
 # Test
 
@@ -117,10 +117,11 @@ Test는 infer_data_dir 경로에 있는 이미지들에 대해 detection + ReID�
 
 지정한 갤러리와 비교해서 각 이미지마다 검출된 ID 예측값과, 실제 GT ID 값들을 출력ㄴ한다.
 
-'''
+```
 예) Predicted Class : [3, 2, 1, 6]
+
     GT Class : [3, 2, 4, 6]
-'''
+```
 
 이후 infer_data_dir 경로에 있는 모든 이미지들에대해 수행한 이후,
 총 정확도를 출력한다.
