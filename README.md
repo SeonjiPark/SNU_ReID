@@ -75,6 +75,8 @@ Inference 및 Test에 사용할 경로 및 파라미터 설정은 config.py에�
 
 ### Directory parameter
 
+```
+
 --infer_data_dir : Detection + ReID pipeline을 돌릴 이미지들의 경로
 
 --dataset_root_dir : 데이터셋 경로 (default : '../DATASET/')
@@ -84,6 +86,8 @@ Inference 및 Test에 사용할 경로 및 파라미터 설정은 config.py에�
 --detection_weight_file : 사용할 detection weight 경로
 
 --reid_weight_file : 사용할 ReID weight 경로
+
+```
 
 
 # 
