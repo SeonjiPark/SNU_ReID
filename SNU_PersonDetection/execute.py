@@ -47,6 +47,9 @@ def do_detect(args, detection_network, img, original_img, labels=None):
     pad = (w - W * gain) / 2, (h - H * gain) / 2  # wh padding
     pred_images = post_preds_images(det, original_img)
     if labels != []:
+        #print(labels)
+        #print(labels.shape)
+        labels = labels.unsqueeze(0)
         labels= xywhn2xyxy(labels[0], w=W, h=H, padw=pad[0], padh=pad[1])
         ids = find_gt_ids(det, labels.to(detection_network.device))
         return pred_images, det, ids

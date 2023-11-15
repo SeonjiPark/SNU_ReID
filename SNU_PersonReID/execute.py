@@ -53,7 +53,7 @@ def do_eval(args, reid_network, outputs):
 
     args.num_query = len(torch.cat([x["labels"] for x in outputs]).detach().cpu().numpy())
 
-    gallery_loader = load_gallery(args)
+    gallery_loader = load_gallery_eval(args)
     
     #add gallery embeddings to outputs
     for i, batch in enumerate(gallery_loader):
@@ -81,16 +81,7 @@ def do_eval(args, reid_network, outputs):
 
     reid_network.get_val_metrics(embeddings, labels, camids)
 
-def do_reid(args, reid_network, pred_querys, gt_ids):
-    gallery_dataloader = make_inference_data_loader(args, args.gallery_path, ImageDataset)
-
-    ### Inference
-    embeddings_gallery, paths_gallery = run_inference(
-        reid_network, gallery_dataloader, args, print_freq= 50, use_cuda=True
-    )
-    ### Create centroids
-    pid_path_index = create_pid_path_index(paths=paths_gallery, func=exctract_func) #returns a dictionary of pids, and the index of embedding
-    embeddings_gallery, paths_gallery = calculate_centroids(embeddings_gallery, pid_path_index)
+def do_reid(args, reid_network, embeddings_gallery, paths_gallery, pred_querys):
 
     ### Inference
     embeddings = run_inference_list(
@@ -149,6 +140,18 @@ def preprocess_reid(args, detect_preds):
 
     return detect_preds_preprocessed
 
+def load_gallery(args, reid_network):
+    gallery_dataloader = make_inference_data_loader(args, args.gallery_path, ImageDataset)
+
+    ### Inference
+    embeddings_gallery, paths_gallery = run_inference(
+        reid_network, gallery_dataloader, args, print_freq= 50, use_cuda=True
+    )
+    ### Create centroids
+    pid_path_index = create_pid_path_index(paths=paths_gallery, func=exctract_func) #returns a dictionary of pids, and the index of embedding
+    embeddings_gallery, paths_gallery = calculate_centroids(embeddings_gallery, pid_path_index)
+
+    return embeddings_gallery, paths_gallery
 
 def _process_dir(dir_path, relabel=False, dataset_name = ""):
     print(dir_path)
@@ -185,7 +188,7 @@ def _process_dir(dir_path, relabel=False, dataset_name = ""):
 
     return dataset, dataset_dict
 
-def load_gallery(args):
+def load_gallery_eval(args):
     dm = init_dataset(
         args.dataset_name, cfg=args, num_workers=8
     )

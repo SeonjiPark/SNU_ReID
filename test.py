@@ -78,12 +78,16 @@ class ReIDPerson:
         
         self.args.gallery_path = os.path.join(self.args.dataset_root_dir, f'{self.args.dataset_name}_reid/bounding_box_test')
         
+        # class override
+        self.reid_checkpoint = torch.load(self.args.reid_weight_file)
+
         #JH 정리
         self.args.reid_batch_size = 128 #?
         self.args.use_unknown = True
         self.args.reid_threshold = 0.8
         self.args.topk = 1
-        self.args.num_classes = 751  #697 for PRW or 751 for market1501
+        self.args.num_classes = self.reid_checkpoint['num_classes']
+
         self.args.input_size_test = ast.literal_eval(self.args.input_size_test) # ast.literal_eval : to turn string of list to list
         self.args.input_pixel_mean = ast.literal_eval(self.args.input_pixel_mean)
         self.args.input_pixel_std = ast.literal_eval(self.args.input_pixel_std)
@@ -121,8 +125,7 @@ class ReIDPerson:
         #    4. Load Detection / Recognition Network   #
         ################################################
         #JH todo
-        reid_checkpoint = torch.load(self.args.reid_weight_file)
-        self.reid_network.load_state_dict(reid_checkpoint['model_state_dict'], strict = False)
+        self.reid_network.load_state_dict(self.reid_checkpoint['model_state_dict'], strict = False)
 
         with torch.no_grad():
             self.detection_network.eval()
@@ -154,10 +157,10 @@ class ReIDPerson:
 
     def test(self, dataloader):
         
-        total_embedding = []
-        total_gt = []
         total_pred_class = []
         outputs = []
+
+        embeddings_gallery, paths_gallery = load_gallery(self.args, self.reid_network) #gallery creation
 
         for idx, data in enumerate(dataloader):
             path, original_img, img_preprocess, labels = data
@@ -173,7 +176,7 @@ class ReIDPerson:
             detect_preds_preprocessed = preprocess_reid(self.args, detect_preds)
 
             if len(detect_preds) != 0:
-                pred_class, embedding = do_reid(self.args, self.reid_network, detect_preds_preprocessed, GT_ids)
+                pred_class, embedding = do_reid(self.args, self.reid_network, embeddings_gallery, paths_gallery, detect_preds_preprocessed)
             else:
                 pred_class = []
 
@@ -190,10 +193,6 @@ class ReIDPerson:
             #eval
             
             outputs = calc_embeddings(self.args, self.reid_network, detect_preds_preprocessed, GT_ids, outputs)
-
-            if idx > 3:
-                break   
-
 
         do_eval(self.args, self.reid_network, outputs)
 
