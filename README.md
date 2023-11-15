@@ -124,7 +124,16 @@ Test는 infer_data_dir 경로에 있는 이미지들에 대해 detection + ReID�
 ```
 
 이후 infer_data_dir 경로에 있는 모든 이미지들에대해 수행한 이후,
-총 정확도를 출력한다.
+아래와 같은 총 top-k 및 mAP 점수, 및 정확도를 출력한다.
+
+```
+top-k, Rank-1  :96.5%
+top-k, Rank-5  :99.4%
+...
+top-k, Rank-50 :99.9%
+mAP: 0.9788
+Accuracy: 0.9650 (7613/7889)
+```
 
 
 

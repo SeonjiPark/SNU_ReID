@@ -11,7 +11,7 @@ def parse_training_args(parser):
     
     parser.add_argument('--detection_weight_file', type=str, default='./weights/detection_MOT17.pt')
     parser.add_argument('--reid_weight_file', type=str, default='./weights/reid_market1501_pretrained.pth')
-
+    
     # #PRW_yolo
     # parser.add_argument('--infer_data_dir', type=str, default='../DATASET/PRW_yolo/test/images', help='Only for inference')
     # parser.add_argument('--dataset_root_dir', type=str, default='../DATASET/', help='root data dir for gallery, gallery must be placed like "{root_dir}/{dataset_name}_reid/gallery" ')

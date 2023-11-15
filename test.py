@@ -159,7 +159,8 @@ class ReIDPerson:
         
         total_pred_class = []
         outputs = []
-
+        correct = 0
+        total = 0 
         embeddings_gallery, paths_gallery = load_gallery(self.args, self.reid_network) #gallery creation
 
         for idx, data in enumerate(dataloader):
@@ -188,6 +189,12 @@ class ReIDPerson:
             
             print("Predicted class:", pred_class)
             print("GT class:", gt_list_int)
+            #print(len(pred_class) == len(gt_list_int))
+
+            for i in range(len(pred_class)):
+                total +=1
+                if pred_class[i] == gt_list_int[i]:
+                    correct +=1
             # SJ Todo
             # save_result
             #eval
@@ -197,6 +204,9 @@ class ReIDPerson:
         do_eval(self.args, self.reid_network, outputs)
 
         del outputs
+
+        print("Accuracy:", float("{:.4f}".format(correct/total)), "(", correct, "/", total, ")")
+
 
         return total_pred_class
 
