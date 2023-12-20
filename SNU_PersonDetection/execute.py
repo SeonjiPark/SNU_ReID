@@ -101,7 +101,6 @@ def save_detection_boxes(args, pred_images, GT_ids, path):
     
 def save_result(args, path, original_img, det, pred_class, names, GT_ids):
     annotator = Annotator(original_img.numpy(), line_width=3, pil=True, example=str(names))
-    # import ipdb; ipdb.set_trace()
     
     im_name = path.split("/")[-1]
     
@@ -274,3 +273,23 @@ class LoadImages:
 
     def __len__(self):
         return len(self.imgfiles)  # number of files
+    
+    
+    
+class LoadNumpyImages:
+    def __init__(self, numpyimage, stride, img_size):
+        self.stride = stride
+        self.img_size = img_size
+        assert len(numpyimage.shape) == 3
+        self.numpyimage = [numpyimage]
+
+
+    def __getitem__(self, index):
+        img = self.numpyimage[index]
+        impath = [f"{str(index).zfill(4)}.png"] # for temp (for save_result)
+        img_preprocess = letterbox(img, self.img_size, stride=self.stride, auto=True)[0]
+        
+        return impath, img, img_preprocess, []
+
+    def __len__(self):
+        return len(self.numpyimage)  # number of files

@@ -5,20 +5,20 @@ def parse_training_args(parser):
     # Directory parameters
     
     #MOT17
-    parser.add_argument('--infer_data_dir', type=str, default='../DATASET/MOT17/train/MOT17-04-FRCNN_query/images', help='Only for inference')
-    parser.add_argument('--dataset_root_dir', type=str, default='../DATASET/', help='root data dir for gallery, gallery must be placed like "{root_dir}/{dataset_name}_reid/gallery" ')
-    parser.add_argument('--dataset_name', type=str, default='MOT17', help='for setting gallery path')
+    # parser.add_argument('--infer_data_dir', type=str, default='../DATASET/MOT17/train/MOT17-04-FRCNN_query/images', help='Only for inference')
+    # parser.add_argument('--dataset_root_dir', type=str, default='../DATASET/', help='root data dir for gallery, gallery must be placed like "{root_dir}/{dataset_name}_reid/gallery" ')
+    # parser.add_argument('--dataset_name', type=str, default='MOT17', help='for setting gallery path')
     
-    parser.add_argument('--detection_weight_file', type=str, default='./weights/detection_MOT17.pt')
-    parser.add_argument('--reid_weight_file', type=str, default='./weights/reid_market1501_pretrained.pth')
+    # parser.add_argument('--detection_weight_file', type=str, default='./weights/detection_MOT17.pt')
+    # parser.add_argument('--reid_weight_file', type=str, default='./weights/reid_market1501_pretrained.pth')
     
     # #PRW_yolo
-    # parser.add_argument('--infer_data_dir', type=str, default='../DATASET/PRW_yolo/test/images', help='Only for inference')
-    # parser.add_argument('--dataset_root_dir', type=str, default='../DATASET/', help='root data dir for gallery, gallery must be placed like "{root_dir}/{dataset_name}_reid/gallery" ')
-    # parser.add_argument('--dataset_name', type=str, default='PRW', help='for setting gallery path')
+    parser.add_argument('--infer_data_dir', type=str, default='./watosys', help='Only for inference')
+    parser.add_argument('--dataset_root_dir', type=str, default='../DATASET/', help='root data dir for gallery, gallery must be placed like "{root_dir}/{dataset_name}_reid/gallery" ')
+    parser.add_argument('--dataset_name', type=str, default='PRW', help='for setting gallery path')
     
-    # parser.add_argument('--detection_weight_file', type=str, default='./weights/detection_PRW.pt')
-    # parser.add_argument('--reid_weight_file', type=str, default='./weights/reid_PRW_pretrained.pth')
+    parser.add_argument('--detection_weight_file', type=str, default='./weights/detection_MOT17.pt')
+    parser.add_argument('--reid_weight_file', type=str, default='./weights/reid_PRW_pretrained.pth')
 
 
 
@@ -28,7 +28,7 @@ def parse_training_args(parser):
     
     
     # Session Parameters
-    parser.add_argument('--gpu_num', type=int, default=1)
+    parser.add_argument('--gpu_num', type=int, default=2)
     parser.add_argument('--save_detection_images', type=str2bool, default=False)
     parser.add_argument('--save_images', type=str2bool, default=True)
     parser.add_argument('--imgsz', type=int, default=640)

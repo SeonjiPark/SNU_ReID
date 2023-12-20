@@ -138,15 +138,20 @@ class ReIDPerson:
         if self.args.save_detection_images: os.makedirs(os.path.join(self.args.output_dir, self.args.detect_save_dir), exist_ok=True)
         return
 
-    def read_data(self):
+    def read_data(self, numpyimage=None):
         ### Load Datas for eval
         # SJ to do
         # Collate = AlignCollate(IMGH, IMGW, PAD)
         
-        if self.args.use_GT_IDs:
-            test_dataset = LoadImagesandLabels(self.args.infer_data_dir, self.args.stride, self.args.detect_imgsz)
+        if numpyimage is not None:
+            test_dataset = LoadNumpyImages(numpyimage, self.args.stride, self.args.detect_imgsz)
+            
         else:
-            test_dataset = LoadImages(self.args.infer_data_dir, self.args.stride, self.args.detect_imgsz)
+            if self.args.use_GT_IDs:
+                test_dataset = LoadImagesandLabels(self.args.infer_data_dir, self.args.stride, self.args.detect_imgsz)
+            else:
+                test_dataset = LoadImages(self.args.infer_data_dir, self.args.stride, self.args.detect_imgsz)
+            
             
         test_dataloader = DataLoader(
             dataset=test_dataset,
@@ -205,7 +210,9 @@ if __name__ == "__main__":
     reidperson.init_network()
     
     print("Start Load Network")
-    dataloader = reidperson.read_data()
+    numpyimage = cv2.imread("./watosys/5_c1.jpg")
+    dataloader = reidperson.read_data(numpyimage)
+    # dataloader = reidperson.read_data()
     
     print("Start Re-Identification")
     recog_result = reidperson.infer(dataloader)
